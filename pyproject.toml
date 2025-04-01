@@ -1,0 +1,15 @@
+[project]
+name = "openephys-to-dh"
+version = "0.1.0"
+description = "Python tools to convert and preprocess OpenEphys data to the DAQ-HDF5 (dh5) format"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["dh-format", "open-ephys-python-tools>=0.1.12"]
+
+[tool.uv.sources]
+dh-format = { git = "https://github.com/cog-neurophys-lab/dh5io.git" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
