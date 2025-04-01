@@ -219,8 +219,8 @@ wheels = [
 
 [[package]]
 name = "open-ephys-python-tools"
-version = "0.1.12"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.13"
+source = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-type-hints#a7ac4b86a7555faae508254f1f02c791a8e06044" }
 dependencies = [
     { name = "h5py" },
     { name = "numpy" },
@@ -228,7 +228,6 @@ dependencies = [
     { name = "requests" },
     { name = "zmq" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8f/bf/588713d14922a768a9f5d8e6ec95e176e6882f25025e27c57c410a2c6cf8/open-ephys-python-tools-0.1.12.tar.gz", hash = "sha256:12f42fbc389253c01a7b31970411b15d874419def1cbbbc403e70674b1f660da", size = 382476 }
 
 [[package]]
 name = "openephys-to-dh"
@@ -247,7 +246,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dh-format", git = "https://github.com/cog-neurophys-lab/dh5io.git" },
-    { name = "open-ephys-python-tools", specifier = ">=0.1.12" },
+    { name = "open-ephys-python-tools", git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-type-hints" },
 ]
 
 [package.metadata.requires-dev]
