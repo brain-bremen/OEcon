@@ -2,6 +2,14 @@
 
 - For now, each Open Ephys "Recording" will result in a DH5 file (data folder is created on OpenEphys startup, experiment is incremented each time acquisition is started, )
 
+**TODO** 
+
+- [x] Add CONT blocks from OE recordings
+- [ ] Add TTL events to DH5 file (into EV02)
+- [ ] Add Network Events as Markers
+- [ ] Add Text messages as Markers
+- [ ] Handle online/offline synchronization of streams
+- [ ] Add creating TRIALMAP from TDR
 
 ## Channel Mapping
 
@@ -14,4 +22,4 @@
 | CONT           |        4001 |                 5600 | Downsampled MUA/ESA, corresponding to 1-1600
 | CONT           |        6001 |                 7600 | High-pass filtered raw data (potentially unnecessary)
 | SPIKE          |           1 |                 1000 | Sorted spikes
-- 
+
