@@ -9,4 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+.vscode
+.mypy_cache
+.pytest_cache
+
 tests/data/*
