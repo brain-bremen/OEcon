@@ -119,7 +119,7 @@ wheels = [
 [[package]]
 name = "dh-format"
 version = "0.2.0.dev0"
-source = { git = "https://github.com/cog-neurophys-lab/dh5io.git#eb71785608d307475e9f9390789af8a9b7ca96a3" }
+source = { git = "https://github.com/cog-neurophys-lab/dh5io.git#b0d47b7dcb78c7a9f09311ead2da7d63ebf10730" }
 dependencies = [
     { name = "h5py" },
     { name = "numpy" },
