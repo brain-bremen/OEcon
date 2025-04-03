@@ -3,8 +3,9 @@ from open_ephys.analysis import Session
 import pytest
 from openephys_to_dh.dh_from_oe_recording import dh_from_oe_recording as oerec2dh
 
-session_name = "Kobi_2025-03-31_11-48-13"
-
+# session_name = "Kobi_2025-03-31_11-48-13"
+# session_name = "Test_2025-04-03_12-48-58"
+session_name = "Test_2025-04-03_12-55-07"
 # Define the relative path to the data folder
 data_folder = Path(__file__).parent / "data" / session_name
 

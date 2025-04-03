@@ -31,6 +31,7 @@ CONT_GROUP_RANGES = {
 
 OE_PROCESSOR_CONT_GROUP_MAP = {
     "PXIe-6341": ContGroups.RAW,
+    "PCIe-6341": ContGroups.RAW,
     "example_data": ContGroups.RAW,
     "Neuropix-PXI": ContGroups.RAW,
 }
@@ -42,6 +43,10 @@ def dh_from_oe_recording(
     recording_index: int = 0,
     split_channels_into_cont_blocks: bool = True,
 ):
+    assert (
+        recording.continuous is not None
+    ), "No continuous data found in the recording."
+
     if len(recording.continuous) == 0:
         raise ValueError(
             "No continuous data found in the recording. This is not supported."
@@ -62,10 +67,17 @@ def dh_from_oe_recording(
     for cont in recording.continuous:
         # cont: Continuous
         metadata: ContinuousMetadata = cont.metadata
-        start_cont_id = (
-            global_channel_index
-            + CONT_GROUP_RANGES[OE_PROCESSOR_CONT_GROUP_MAP[metadata.stream_name]][0]
+
+        cont_group: ContGroups | None = OE_PROCESSOR_CONT_GROUP_MAP.get(
+            metadata.stream_name
         )
+        if cont_group is None:
+            raise ValueError(
+                f"Unknown continuous stream name: {metadata.stream_name}. "
+                f"Available stream names are {(OE_PROCESSOR_CONT_GROUP_MAP.keys())}."
+            )
+        group_range_start_index: int = CONT_GROUP_RANGES[cont_group][0]
+        start_cont_id = global_channel_index + group_range_start_index
 
         nSamples, nChannels = cont.samples.shape
         if split_channels_into_cont_blocks:
@@ -86,7 +98,16 @@ def dh_from_oe_recording(
             )
 
     # events
-    # for event in recording.events:
+
+    # find events from Network Events i.e. source_processor == "Network Events"
+    network_event_folders = [
+        event
+        for event in recording.info["events"]
+        if event["source_processor"] == "Network Events"
+    ]
+    assert (
+        len(network_event_folders) < 2
+    ), "Multiple Network Events found in the recording."
 
 
 def create_cont_group_per_channel(

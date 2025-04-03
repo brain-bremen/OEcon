@@ -219,8 +219,8 @@ wheels = [
 
 [[package]]
 name = "open-ephys-python-tools"
-version = "0.1.13"
-source = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-type-hints#a7ac4b86a7555faae508254f1f02c791a8e06044" }
+version = "0.2.0.dev0"
+source = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests#a85aebc99998b55dcaaec7fb7690940c4292138b" }
 dependencies = [
     { name = "h5py" },
     { name = "numpy" },
@@ -246,7 +246,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dh-format", git = "https://github.com/cog-neurophys-lab/dh5io.git" },
-    { name = "open-ephys-python-tools", git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-type-hints" },
+    { name = "open-ephys-python-tools", git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests" },
 ]
 
 [package.metadata.requires-dev]
