@@ -55,6 +55,15 @@ class Event:
     states: np.ndarray
     sample_numbers: np.ndarray
 
+    def __len__(self):
+        assert (
+            len(self.full_words)
+            == len(self.timestamps)
+            == len(self.states)
+            == len(self.sample_numbers)
+        ), f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.states)}, {len(self.sample_numbers)}"
+        return len(self.full_words)
+
     @staticmethod
     def from_folder(full_event_folder_path: str | Path, metadata=EventMetadata):
         return Event(
@@ -99,8 +108,14 @@ class FullWordEvent:
     timestamps: np.ndarray
     sample_numbers: np.ndarray
 
+    def __len__(self):
+        assert (
+            len(self.full_words) == len(self.timestamps) == len(self.sample_numbers)
+        ), f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.sample_numbers)}"
+        return len(self.full_words)
 
-def convert_to_full_unique_words_only(event: Event) -> FullWordEvent:
+
+def remove_repeating_simultaneous_words(event: Event) -> FullWordEvent:
     """Convert event data to contain only changing words.
 
     The Network Events plugin can send full words, which causes
@@ -136,7 +151,7 @@ def event_from_eventfolder(
     # return data based on metadata.source_processor
     match metadata.source_processor:
         case "Network Events":
-            return convert_to_full_unique_words_only(
+            return remove_repeating_simultaneous_words(
                 Event.from_folder(full_event_folder_path, metadata)
             )
         case "Message Center":
