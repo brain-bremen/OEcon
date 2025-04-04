@@ -5,7 +5,7 @@
 **TODO** 
 
 - [x] Add CONT blocks from OE recordings
-- [ ] Add TTL events to DH5 file (into EV02)
+- [x] Add TL events to DH5 file (into EV02)
 - [ ] Add Network Events as Markers
 - [ ] Add Text messages as Markers
 - [ ] Handle online/offline synchronization of streams

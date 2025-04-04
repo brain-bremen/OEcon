@@ -109,7 +109,10 @@ def convert_to_full_unique_words_only(event: Event) -> FullWordEvent:
     the state attribute.
 
     """
+
+    # TODO: This does not work. Write a test that verifies it does.
     unique_indices = np.where(np.diff(event.full_words, prepend=np.nan) != 0)[0]
+
     return FullWordEvent(
         metadata=event.metadata,
         full_words=event.full_words[unique_indices],

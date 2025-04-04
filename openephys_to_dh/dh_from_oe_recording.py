@@ -2,9 +2,17 @@ import enum
 import dh5io
 import dh5io.create
 import dh5io.cont
+import dh5io.event_triggers
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
 from open_ephys.analysis.recording import ContinuousMetadata
 import numpy as np
+
+from openephys_to_dh.events import (
+    EventMetadata,
+    FullWordEvent,
+    event_from_eventfolder,
+    Event,
+)
 
 
 class ContGroups(enum.IntEnum):
@@ -33,6 +41,23 @@ OE_PROCESSOR_CONT_GROUP_MAP = {
     "example_data": ContGroups.RAW,
     "Neuropix-PXI": ContGroups.RAW,
 }
+
+
+def find_ev02_source(oeinfo: dict):
+    for event in oeinfo["events"]:
+        if (
+            event["source_processor"] == "NI-DAQmx"
+            and event["stream_name"] == "PXIe-6341"
+        ):
+            return EventMetadata(**event)
+    return None
+
+
+def find_marker_source(oeinfo: dict):
+    """Network Events for Markers"""
+    for event in oeinfo["events"]:
+        if event["source_processor"] == "Network Events":
+            return EventMetadata(**event)
 
 
 def dh_from_oe_recording(
@@ -96,6 +121,29 @@ def dh_from_oe_recording(
             )
 
     # events
+    ev02_source_metadata = find_ev02_source(recording.info)
+    if ev02_source_metadata is not None:
+        event_data = event_from_eventfolder(
+            recording_directory=recording.directory,
+            metadata=ev02_source_metadata,
+        )
+        assert isinstance(event_data, Event)
+
+        dh5io.event_triggers.add_event_triggers_to_file(
+            dh5file.file,
+            timestamps_ns=np.array(event_data.timestamps * 1e9, dtype=np.int64),
+            event_codes=event_data.states,
+        )
+
+    network_events_source = find_marker_source(recording.info)
+    if network_events_source is not None:
+        event_data = event_from_eventfolder(
+            recording_directory=recording.directory,
+            metadata=network_events_source,
+        )
+        assert isinstance(event_data, FullWordEvent)
+        # TODO: add network events as Markers
+        a = 1
 
     # # find events from Network Events i.e. source_processor == "Network Events"
     # network_event_folders = [
