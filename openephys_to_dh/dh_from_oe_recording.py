@@ -99,15 +99,15 @@ def dh_from_oe_recording(
 
     # events
 
-    # find events from Network Events i.e. source_processor == "Network Events"
-    network_event_folders = [
-        event
-        for event in recording.info["events"]
-        if event["source_processor"] == "Network Events"
-    ]
-    assert (
-        len(network_event_folders) < 2
-    ), "Multiple Network Events found in the recording."
+    # # find events from Network Events i.e. source_processor == "Network Events"
+    # network_event_folders = [
+    #     event
+    #     for event in recording.info["events"]
+    #     if event["source_processor"] == "Network Events"
+    # ]
+    # assert (
+    #     len(network_event_folders) < 2
+    # ), "Multiple Network Events found in the recording."
 
 
 def create_cont_group_per_channel(
