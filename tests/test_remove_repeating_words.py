@@ -35,5 +35,5 @@ def test_remove_repeating_words():
 
     full_word_datat = remove_repeating_simultaneous_words(event_data)
     assert isinstance(full_word_datat, FullWordEvent)
-    assert len(full_word_datat) == 4
+    assert len(full_word_datat) == 5
     assert np.array_equal(full_word_datat.full_words, np.array([1, 3, 4, 128, 129]))

@@ -1,4 +1,5 @@
 import enum
+import time
 import dh5io
 import dh5io.create
 import dh5io.cont
@@ -6,6 +7,7 @@ import dh5io.event_triggers
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
 from open_ephys.analysis.recording import ContinuousMetadata
 import numpy as np
+from openephys_to_dh.network_event_codes import VStimEventCode
 
 from openephys_to_dh.events import (
     EventMetadata,
@@ -122,38 +124,53 @@ def dh_from_oe_recording(
 
     # events
     ev02_source_metadata = find_ev02_source(recording.info)
+    timestamps_ns = np.array([], dtype=np.int64)
+    event_codes = np.array([], dtype=np.int32)
     if ev02_source_metadata is not None:
-        event_data = event_from_eventfolder(
+        network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,
             metadata=ev02_source_metadata,
         )
-        assert isinstance(event_data, Event)
+        assert isinstance(network_events_words, Event)
 
-        dh5io.event_triggers.add_event_triggers_to_file(
-            dh5file.file,
-            timestamps_ns=np.array(event_data.timestamps * 1e9, dtype=np.int64),
-            event_codes=event_data.states,
-        )
+        timestamps_ns = np.array(network_events_words.timestamps * 1e9, dtype=np.int64)
+        event_codes = network_events_words.states
 
+    network_events_offset = 1000
     network_events_source = find_marker_source(recording.info)
     if network_events_source is not None:
-        event_data = event_from_eventfolder(
+        network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,
             metadata=network_events_source,
         )
-        assert isinstance(event_data, FullWordEvent)
-        # TODO: add network events as Markers
-        a = 1
+        assert isinstance(network_events_words, FullWordEvent)
 
-    # # find events from Network Events i.e. source_processor == "Network Events"
-    # network_event_folders = [
-    #     event
-    #     for event in recording.info["events"]
-    #     if event["source_processor"] == "Network Events"
-    # ]
-    # assert (
-    #     len(network_event_folders) < 2
-    # ), "Multiple Network Events found in the recording."
+        # append to timesatamps_ns and event_codes
+        timestamps_ns = np.concatenate(
+            (timestamps_ns, network_events_words.timestamps * 1e9)
+        ).astype(np.int64)
+        event_codes = np.concatenate(
+            (event_codes, network_events_words.full_words + network_events_offset)
+        ).astype(np.int32)
+
+    # sort event_codes and timesamps_ns according to timestamps_ns
+    sort_indices = np.argsort(timestamps_ns)
+    timestamps_ns = timestamps_ns[sort_indices]
+    event_codes = event_codes[sort_indices]
+
+    assert all(np.diff(timestamps_ns) >= 0)
+
+    dh5io.event_triggers.add_event_triggers_to_file(
+        dh5file.file, timestamps_ns=timestamps_ns, event_codes=event_codes
+    )
+
+    if network_events_source is not None:
+        # add names of events as attributes to dataset
+        ev02_dataset = dh5file.file["EV02"]
+        for event_code in VStimEventCode:
+            ev02_dataset.attrs[str(event_code.name)] = np.int32(
+                event_code.value + network_events_offset
+            )
 
 
 def create_cont_group_per_channel(
