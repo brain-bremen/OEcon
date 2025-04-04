@@ -8,6 +8,7 @@ from openephys_to_dh.events import (
     EventMetadata,
     Event,
     Messages,
+    FullWordEvent,
     event_from_eventfolder,
 )
 
@@ -50,4 +51,4 @@ def test_load_events(recording):
             recording_directory=recording.directory,
             metadata=metadata,
         )
-        assert isinstance(event_data, (Event, Messages))
+        assert isinstance(event_data, (Event, Messages, FullWordEvent))

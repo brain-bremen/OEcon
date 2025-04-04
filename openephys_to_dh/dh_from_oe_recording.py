@@ -1,6 +1,4 @@
-from email.policy import default
 import enum
-import glob
 import dh5io
 import dh5io.create
 import dh5io.cont

@@ -67,6 +67,19 @@ class Event:
             ),
         )
 
+    def __init__(
+        self, metadata: EventMetadata, full_words, timestamps, states, sample_numbers
+    ):
+        # verify all args have same length
+        assert (
+            len(full_words) == len(timestamps) == len(states) == len(sample_numbers)
+        ), f"Length mismatch: {len(full_words)}, {len(timestamps)}, {len(states)}, {len(sample_numbers)}"
+        self.metadata = metadata
+        self.full_words = full_words
+        self.timestamps = timestamps
+        self.states = states
+        self.sample_numbers = sample_numbers
+
     def __str__(self):
         metadata_str = pprint.pformat(self.metadata)
         return (
@@ -79,9 +92,35 @@ class Event:
         )
 
 
+@dataclass
+class FullWordEvent:
+    metadata: EventMetadata
+    full_words: np.ndarray
+    timestamps: np.ndarray
+    sample_numbers: np.ndarray
+
+
+def convert_to_full_unique_words_only(event: Event) -> FullWordEvent:
+    """Convert event data to contain only changing words.
+
+    The Network Events plugin can send full words, which causes
+    multiple lines to change in the same sample. This function
+    removes the mulitple event entries for each bit and removes
+    the state attribute.
+
+    """
+    unique_indices = np.where(np.diff(event.full_words, prepend=np.nan) != 0)[0]
+    return FullWordEvent(
+        metadata=event.metadata,
+        full_words=event.full_words[unique_indices],
+        timestamps=event.timestamps[unique_indices],
+        sample_numbers=event.sample_numbers[unique_indices],
+    )
+
+
 def event_from_eventfolder(
     recording_directory: str | Path, metadata: EventMetadata
-) -> Event | Messages:
+) -> Event | Messages | FullWordEvent:
     # full_event_folder_path = os.path.join(path, "events", metadata.folder_name)
     full_event_folder_path = (
         Path(recording_directory) / "events" / Path(metadata.folder_name)
@@ -94,7 +133,9 @@ def event_from_eventfolder(
     # return data based on metadata.source_processor
     match metadata.source_processor:
         case "Network Events":
-            return Event.from_folder(full_event_folder_path, metadata)
+            return convert_to_full_unique_words_only(
+                Event.from_folder(full_event_folder_path, metadata)
+            )
         case "Message Center":
             return Messages.from_folder(full_event_folder_path, metadata)
         case "NI-DAQmx":
