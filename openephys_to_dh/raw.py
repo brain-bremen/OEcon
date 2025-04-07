@@ -1,4 +1,4 @@
-from openephys_to_dh.config import RawConfig
+from openephys_to_dh.config import RawConfig, ContGroups
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
 from open_ephys.analysis.recording import ContinuousMetadata
 from dh5io import DH5File
@@ -51,6 +51,9 @@ def create_cont_group_per_continuous_stream(
     start_cont_id: int,
     last_global_channel_index: int = 0,
 ):
+
+    raise NotImplementedError("Grouping channels into CONT blocks is not yet supported")
+
     # create a CONT group for the entire continuous stream
     dh5_cont_id = start_cont_id
 
@@ -82,6 +85,10 @@ def create_cont_group_per_continuous_stream(
 
 
 def process_raw_data(config: RawConfig, recording: BinaryRecording, dh5file: DH5File):
+
+    assert (
+        recording.continuous is not None
+    ), "No continuous data found in the recording."
 
     # continuous raw data
     global_channel_index = 0

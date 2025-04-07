@@ -1,7 +1,6 @@
-import enum
 import dh5io
 import dh5io.create
-from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
+from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 from openephys_to_dh.events import process_oe_events
 from openephys_to_dh.config import EventPreprocessingConfig, RawConfig
 from openephys_to_dh.raw import process_raw_data
