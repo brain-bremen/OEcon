@@ -1,9 +1,15 @@
+import dh5io
 from dataclasses import dataclass
 from pathlib import Path
+from dh5io import DH5File
 import numpy as np
 import pprint
 import os
 import warnings
+from open_ephys.analysis.formats import BinaryRecording
+import dh5io.event_triggers
+from openephys_to_dh.network_event_codes import VStimEventCode
+from openephys_to_dh.config import EventPreprocessingConfig
 
 
 @dataclass
@@ -163,3 +169,74 @@ def event_from_eventfolder(
                 f"Unsupported source processor: {metadata.source_processor}. Attempting generic Event loading..."
             )
             return Event.from_folder(full_event_folder_path, metadata)
+
+
+def find_ev02_source(oeinfo: dict):
+    for event in oeinfo["events"]:
+        if (
+            event["source_processor"] == "NI-DAQmx"
+            and event["stream_name"] == "PXIe-6341"
+        ):
+            return EventMetadata(**event)
+    return None
+
+
+def find_marker_source(oeinfo: dict):
+    """Network Events for Markers"""
+    for event in oeinfo["events"]:
+        if event["source_processor"] == "Network Events":
+            return EventMetadata(**event)
+
+
+def process_oe_events(
+    event_config: EventPreprocessingConfig, recording: BinaryRecording, dh5file: DH5File
+):
+    # events
+    ev02_source_metadata = find_ev02_source(recording.info)
+    timestamps_ns = np.array([], dtype=np.int64)
+    event_codes = np.array([], dtype=np.int32)
+    if ev02_source_metadata is not None:
+        network_events_words = event_from_eventfolder(
+            recording_directory=recording.directory,
+            metadata=ev02_source_metadata,
+        )
+        assert isinstance(network_events_words, Event)
+
+        timestamps_ns = np.array(network_events_words.timestamps * 1e9, dtype=np.int64)
+        event_codes = network_events_words.states
+
+    network_events_offset = event_config.network_events_offset
+    network_events_source = find_marker_source(recording.info)
+    if network_events_source is not None:
+        network_events_words = event_from_eventfolder(
+            recording_directory=recording.directory,
+            metadata=network_events_source,
+        )
+        assert isinstance(network_events_words, FullWordEvent)
+
+        # append to timesatamps_ns and event_codes
+        timestamps_ns = np.concatenate(
+            (timestamps_ns, network_events_words.timestamps * 1e9)
+        ).astype(np.int64)
+        event_codes = np.concatenate(
+            (event_codes, network_events_words.full_words + network_events_offset)
+        ).astype(np.int32)
+
+    # sort event_codes and timesamps_ns according to timestamps_ns
+    sort_indices = np.argsort(timestamps_ns)
+    timestamps_ns = timestamps_ns[sort_indices]
+    event_codes = event_codes[sort_indices]
+
+    assert all(np.diff(timestamps_ns) >= 0)
+
+    dh5io.event_triggers.add_event_triggers_to_file(
+        dh5file.file, timestamps_ns=timestamps_ns, event_codes=event_codes
+    )
+
+    if network_events_source is not None:
+        # add names of events as attributes to dataset
+        ev02_dataset = dh5file.file["EV02"]
+        for event_code in VStimEventCode:
+            ev02_dataset.attrs[str(event_code.name)] = np.int32(
+                event_code.value + network_events_offset
+            )
