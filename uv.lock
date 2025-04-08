@@ -254,7 +254,7 @@ wheels = [
 [[package]]
 name = "open-ephys-python-tools"
 version = "0.2.0.dev0"
-source = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests#3f001204c68bf8608105d4eb4f726b1b78c2107e" }
+source = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests#b9926774be9aa1b59725248eedac12592c094d3d" }
 dependencies = [
     { name = "h5py" },
     { name = "numpy" },

@@ -29,3 +29,4 @@ dev = ["pytest>=8.3.5"]
 
 [project.scripts]
 oe_to_dh = "cli.oe_to_dh:main"
+dhtree = "cli.dhtree:main"

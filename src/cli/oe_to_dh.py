@@ -17,9 +17,10 @@ def main():
     parser.add_argument(
         "--output-folder",
         type=str,
-        required=True,
-        help="Output folder for the DH5 file.",
+        default=None,
+        help="Output folder for the DH5 file. Defaults to the parent folder of oe_session.",
     )
+
     parser.add_argument(
         "--config", type=str, help="Path to the configuration JSON file."
     )
@@ -34,17 +35,25 @@ def main():
         )
 
     session = Session(oe_session_path)
-    recording = session.recordings[0]
+    recording = session.recordnodes[0].recordings[0]
 
-    output_folder = Path(args.output_folder)
+    if args.output_folder is None:
+        output_folder = oe_session_path.parent
+    else:
+        output_folder = Path(args.output_folder)
     output_folder.mkdir(parents=True, exist_ok=True)
 
     session_name = oe_session_path.name
-    oe_to_dh(
-        recording=recording,
-        session_name=str(output_folder / session_name),
-        recording_index=args.recording_index,
-    )
+
+    recording_index = 0
+    for node in session.recordnodes:
+        for recording in node.recordings:
+            oe_to_dh(
+                recording=recording,
+                session_name=str(output_folder / session_name),
+                recording_index=recording_index,
+            )
+            recording_index += 1
 
 
 if __name__ == "__main__":
