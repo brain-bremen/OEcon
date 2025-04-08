@@ -1,5 +1,5 @@
-import openephys_to_dh.dh_from_oe_recording
+import .oe_to_dh import oe_to_dh
 
 __all__ = [
-    "dh_from_oe_recording",
+    "oe_to_dh",
 ]

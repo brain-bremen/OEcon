@@ -266,7 +266,7 @@ dependencies = [
 [[package]]
 name = "openephys-to-dh"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "dataclasses-json" },
     { name = "dh-format" },

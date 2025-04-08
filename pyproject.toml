@@ -11,6 +11,13 @@ dependencies = [
     "scipy>=1.15.2",
 ]
 
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
+
 [tool.uv.sources]
 dh-format = { git = "https://github.com/cog-neurophys-lab/dh5io.git" }
 open-ephys-python-tools = { git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git", branch = "add-tests" }
@@ -18,3 +25,7 @@ open-ephys-python-tools = { git = "https://github.com/joschaschmiedt/open-ephys-
 
 [dependency-groups]
 dev = ["pytest>=8.3.5"]
+
+
+[project.scripts]
+oe_to_dh = "cli.oe_to_dh:main"

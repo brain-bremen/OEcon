@@ -3,7 +3,7 @@ import os
 import open_ephys.analysis as oe
 from open_ephys.analysis.formats import BinaryRecording
 import pytest
-from openephys_to_dh.dh_from_oe_recording import dh_from_oe_recording as oerec2dh
+from openephys_to_dh.oe_to_dh import oe_to_dh as oerec2dh
 from openephys_to_dh.events import (
     EventMetadata,
     Event,

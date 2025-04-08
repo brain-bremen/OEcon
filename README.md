@@ -6,10 +6,12 @@
 **TODO** 
 
 - [x] Add CONT blocks from OE recordings
+- [x] Add decimatedd LFP
 - [x] Add TTL events to DH5 file (into EV02)
 - [ ] Add names of TTL events as attributes to DH5
 - [x] Add Network Events into EV02
 - [ ] Add Text messages as Markers
+- [ ] Add ESA/MUA
 - [ ] Handle online/offline synchronization of streams
 - [ ] Add creating TRIALMAP from TDR
 

@@ -44,6 +44,12 @@ class RawConfig:
 
 @dataclass_json
 @dataclass
+class EsaMuaConfig:
+    pass
+
+
+@dataclass_json
+@dataclass
 class EventPreprocessingConfig:
     network_events_offset: int = 1000
     network_events_code_name_map: dict[str, int] | None = field(
