@@ -233,10 +233,23 @@ def process_oe_events(
         dh5file.file, timestamps_ns=timestamps_ns, event_codes=event_codes
     )
 
+    # add names of event codes as attributes to filed
+    if event_config.ttl_line_names is not None:
+        ev02_dataset = dh5file.file["EV02"]
+        for event_name, event_code in event_config.ttl_line_names.items():
+            ev02_dataset.attrs[str(event_name)] = np.int32(
+                event_code + network_events_offset
+            )
+
     if network_events_source is not None:
         # add names of events as attributes to dataset
         ev02_dataset = dh5file.file["EV02"]
-        for event_code in VStimEventCode:
-            ev02_dataset.attrs[str(event_code.name)] = np.int32(
-                event_code.value + network_events_offset
-            )
+        if event_config.network_events_code_name_map is not None:
+
+            for (
+                event_name,
+                event_code,
+            ) in event_config.network_events_code_name_map.items():
+                ev02_dataset.attrs[str(event_name)] = np.int32(
+                    event_code + network_events_offset
+                )

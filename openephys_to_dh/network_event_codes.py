@@ -378,3 +378,7 @@ class VStimEventCode(Enum):
             if event.value[0] == code:
                 return event.name
         return None
+
+    @classmethod
+    def asdict(cls):
+        return {event.name: event.value for event in cls}

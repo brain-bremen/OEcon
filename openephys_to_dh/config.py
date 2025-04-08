@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from enum import Enum
 
+from openephys_to_dh.network_event_codes import VStimEventCode
+
 
 class ContGroups(Enum):
     RAW = "RAW"
@@ -44,6 +46,10 @@ class RawConfig:
 @dataclass
 class EventPreprocessingConfig:
     network_events_offset: int = 1000
+    network_events_code_name_map: dict[str, int] | None = field(
+        default_factory=lambda: VStimEventCode.asdict()
+    )
+    ttl_line_names: dict[str, int] | None = None
 
 
 @dataclass_json
@@ -55,7 +61,14 @@ class SpikeCuttingConfig:
 @dataclass_json
 @dataclass
 class DecimationConfig:
-    pass
+    downsampling_factor: dict[str, int] = field(
+        default_factory=lambda: {"some_identifier": 30}
+    )
+    ftype: str = "fir"
+    zero_phase: bool = True
+    filter_order: int | None = 600
+    channel_names: list[str] | None = None  # doall if None
+    start_block_id: int = 2001
 
 
 @dataclass_json

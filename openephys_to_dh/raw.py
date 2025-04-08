@@ -15,7 +15,8 @@ def create_cont_group_per_channel(
 ):
     global_channel_index = first_global_channel_index
     index = dh5io.cont.create_empty_index_array(1)
-    # split channels into CONT block per channel (TODO: make this optional)
+
+    assert metadata.channel_names is not None, "Channel names are not set in OE data."
     for channel_index, name in enumerate(metadata.channel_names):
         dh5_cont_id = start_cont_id + channel_index
 
@@ -38,7 +39,7 @@ def create_cont_group_per_channel(
             sample_period_ns=np.int32(1.0 / metadata.sample_rate * 1e9),
             name=name,
             channels=channel_info,
-            calibration=metadata.bit_volts,
+            calibration=metadata.bit_volts[channel_index],
         )
 
         global_channel_index += 1
@@ -84,7 +85,9 @@ def create_cont_group_per_continuous_stream(
     )
 
 
-def process_raw_data(config: RawConfig, recording: BinaryRecording, dh5file: DH5File):
+def process_oe_raw_data(
+    config: RawConfig, recording: BinaryRecording, dh5file: DH5File
+):
 
     assert (
         recording.continuous is not None

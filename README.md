@@ -1,17 +1,19 @@
 # Tools for preprocessing of Open Ephys data into DAQ-HDF (DH5) format
 
-- For now, each Open Ephys "Recording" will result in a DH5 file (data folder is created on OpenEphys startup, experiment is incremented each time acquisition is started, )
+- For now, each Open Ephys "Recording" will result in a DH5 file (data folder is created on
+  OpenEphys startup, experiment is incremented each time acquisition is started)
 
 **TODO** 
 
 - [x] Add CONT blocks from OE recordings
-- [x] Add TL events to DH5 file (into EV02)
-- [ ] Add Network Events as Markers
+- [x] Add TTL events to DH5 file (into EV02)
+- [ ] Add names of TTL events as attributes to DH5
+- [x] Add Network Events into EV02
 - [ ] Add Text messages as Markers
 - [ ] Handle online/offline synchronization of streams
 - [ ] Add creating TRIALMAP from TDR
 
-## Channel Mapping
+## Default Channel Mapping
 
 | Group Prefix   | Block start | Block id end (incl.) | Purpose
 | -------------- | ----------- | -------------------- | --------------
