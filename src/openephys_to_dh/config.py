@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from enum import Enum
 
-from openephys_to_dh.network_event_codes import VStimEventCode
+from vstim.network_event_codes import VStimEventCode
 
 
 class ContGroups(Enum):

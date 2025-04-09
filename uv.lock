@@ -272,6 +272,7 @@ dependencies = [
     { name = "dh-format" },
     { name = "open-ephys-python-tools" },
     { name = "scipy" },
+    { name = "vstim-python-tools" },
 ]
 
 [package.dev-dependencies]
@@ -285,6 +286,7 @@ requires-dist = [
     { name = "dh-format", git = "https://github.com/cog-neurophys-lab/dh5io.git" },
     { name = "open-ephys-python-tools", git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests" },
     { name = "scipy", specifier = ">=1.15.2" },
+    { name = "vstim-python-tools", git = "https://github.com/brain-bremen/vstim-python-tools.git" },
 ]
 
 [package.metadata.requires-dev]
@@ -561,6 +563,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/aa/63/e53da845320b757bf
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/19/4ec628951a74043532ca2cf5d97b7b14863931476d117c471e8e2b1eb39f/urllib3-2.3.0-py3-none-any.whl", hash = "sha256:1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df", size = 128369 },
 ]
+
+[[package]]
+name = "vstim-python-tools"
+version = "0.1.0"
+source = { git = "https://github.com/brain-bremen/vstim-python-tools.git#36b9e12ed70171339dd3ac836c847f96fa6cddd6" }
 
 [[package]]
 name = "zmq"

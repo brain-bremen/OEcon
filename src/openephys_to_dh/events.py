@@ -8,7 +8,6 @@ import os
 import warnings
 from open_ephys.analysis.formats import BinaryRecording
 import dh5io.event_triggers
-from openephys_to_dh.network_event_codes import VStimEventCode
 from openephys_to_dh.config import EventPreprocessingConfig
 
 
@@ -202,7 +201,9 @@ def process_oe_events(
         )
         assert isinstance(network_events_words, Event)
 
-        timestamps_ns = np.array(network_events_words.timestamps * 1e9, dtype=np.int64)
+        timestamps_ns = np.array(
+            np.int64(np.round(network_events_words.timestamps * 1e9)), dtype=np.int64
+        )
         event_codes = network_events_words.states
 
     network_events_offset = event_config.network_events_offset
@@ -216,7 +217,7 @@ def process_oe_events(
 
         # append to timesatamps_ns and event_codes
         timestamps_ns = np.concatenate(
-            (timestamps_ns, network_events_words.timestamps * 1e9)
+            (timestamps_ns, np.int64(np.round(network_events_words.timestamps * 1e9)))
         ).astype(np.int64)
         event_codes = np.concatenate(
             (event_codes, network_events_words.full_words + network_events_offset)
