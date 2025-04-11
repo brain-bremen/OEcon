@@ -12,9 +12,11 @@ from openephys_to_dh.events import (
     event_from_eventfolder,
 )
 
-session_name = "Kobi_2025-03-31_11-48-13"
+# session_name = "Kobi_2025-03-31_11-48-13"
 # session_name = "Test_2025-04-03_12-48-58"
 # session_name = "Test_2025-04-03_12-55-07"
+session_name = "Test"
+
 # Define the relative path to the data folder
 data_folder = Path(__file__).parent / "data" / session_name
 

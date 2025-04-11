@@ -203,11 +203,18 @@ def process_oe_trialmap(
     oe_messages = get_messages_from_recording(recording)
     trial_start_messages: list[TrialStartMessage] = []
     trial_start_timestamps = []
+    trial_end_messages: list[TrialEndMessage] = []
+    trial_end_timestamps = []
     for msg in oe_messages:
         parsed_message = parse_message(msg["text"])
         if isinstance(parsed_message, TrialStartMessage):
             trial_start_messages.append(parsed_message)
             trial_start_timestamps.append(msg["timestamp"])
+        if isinstance(parsed_message, TrialEndMessage):
+            trial_end_messages.append(parsed_message)
+            trial_end_timestamps.append(msg["timestamp"])
+
+    assert len(trial_start_messages) == len(trial_end_messages)
 
     new_trialmap = np.recarray(
         shape=(len(trial_start_messages)),
@@ -216,12 +223,14 @@ def process_oe_trialmap(
 
     for iTrial, msg in enumerate(trial_start_messages):
 
+        end_message = trial_end_messages[iTrial]
+
+        assert msg.trial_index == end_message.trial_index
+
         new_trialmap[iTrial].TrialNo = msg.trial_index
         new_trialmap[iTrial].StimNo = msg.trial_type_number
-        # TODO: parse trial end message to get this info
-        new_trialmap[iTrial].Outcome = -1
+        new_trialmap[iTrial].Outcome = trial_end_messages[iTrial].outcome.value
         new_trialmap[iTrial].StartTime = np.int64(trial_start_timestamps[iTrial] * 1e9)
-        # TODO:
-        new_trialmap[iTrial].EndTime = 0
+        new_trialmap[iTrial].EndTime = np.int64(trial_end_timestamps[iTrial] * 1e9)
 
     dh5io.trialmap.add_trialmap_to_file(dh5file.file, new_trialmap)
