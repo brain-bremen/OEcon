@@ -60,6 +60,13 @@ class EventPreprocessingConfig:
 
 @dataclass_json
 @dataclass
+class TrialMapConfig:
+    use_message_center_messages: bool = True
+    trial_start_ttl_line: int | None = None
+
+
+@dataclass_json
+@dataclass
 class SpikeCuttingConfig:
     pass
 
@@ -83,4 +90,5 @@ class OpenEphysToDhConfig:
     raw_config: RawConfig | None
     decimation_config: DecimationConfig | None
     event_config: EventPreprocessingConfig | None
+    trialmap_config: TrialMapConfig | None
     spike_cutting_config: SpikeCuttingConfig | None

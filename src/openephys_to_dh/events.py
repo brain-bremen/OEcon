@@ -31,6 +31,15 @@ class Messages:
     sample_numbers: np.ndarray
     timestamps: np.ndarray
 
+    def __iter__(self):
+        # merge three nd arrays (text, sample_numbers and timestamps) to iterate over
+        for i in range(len(self.text)):
+            yield {
+                "text": self.text[i].decode(),
+                "sample_number": self.sample_numbers[i],
+                "timestamp": self.timestamps[i],
+            }
+
     def __str__(self):
         metadata_str = pprint.pformat(self.metadata)
         return (
@@ -190,10 +199,12 @@ def find_marker_source(oeinfo: dict):
 def process_oe_events(
     event_config: EventPreprocessingConfig, recording: BinaryRecording, dh5file: DH5File
 ):
-    # events
-    ev02_source_metadata = find_ev02_source(recording.info)
+
     timestamps_ns = np.array([], dtype=np.int64)
     event_codes = np.array([], dtype=np.int32)
+
+    # TTL
+    ev02_source_metadata = find_ev02_source(recording.info)
     if ev02_source_metadata is not None:
         network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,
@@ -206,8 +217,9 @@ def process_oe_events(
         )
         event_codes = network_events_words.states
 
-    network_events_offset = event_config.network_events_offset
+    # Network Events
     network_events_source = find_marker_source(recording.info)
+    network_events_offset = event_config.network_events_offset
     if network_events_source is not None:
         network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,

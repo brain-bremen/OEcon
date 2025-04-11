@@ -1,8 +1,17 @@
 import warnings
 from dataclasses import dataclass
-from typing import Callable
-from vstim.tdr import TrialOutcome
 from enum import Enum
+from typing import Callable
+
+import dh5io
+import dh5io.trialmap
+import numpy as np
+from dh5io import DH5File
+from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
+from vstim.tdr import TrialOutcome
+
+from openephys_to_dh.config import TrialMapConfig
+from openephys_to_dh.events import EventMetadata, Messages, event_from_eventfolder
 
 
 @dataclass
@@ -163,3 +172,56 @@ def parse_message(
     message_type = MessageType(message.split(sep=" ")[0])
 
     return message_type_parser_map[message_type](message)
+
+
+def find_message_source(oeinfo: dict) -> EventMetadata | None:
+    for event in oeinfo["events"]:
+        if event["source_processor"] == "Message Center":
+            return EventMetadata(**event)
+    return None
+
+
+def get_messages_from_recording(
+    recording: BinaryRecording,
+) -> Messages:
+
+    message_source = find_message_source(recording.info)
+    assert message_source is not None
+
+    messages = event_from_eventfolder(
+        recording_directory=recording.directory, metadata=message_source
+    )
+
+    assert isinstance(messages, Messages)
+    return messages
+
+
+def process_oe_trialmap(
+    config: TrialMapConfig, recording: BinaryRecording, dh5file: DH5File
+):
+
+    oe_messages = get_messages_from_recording(recording)
+    trial_start_messages: list[TrialStartMessage] = []
+    trial_start_timestamps = []
+    for msg in oe_messages:
+        parsed_message = parse_message(msg["text"])
+        if isinstance(parsed_message, TrialStartMessage):
+            trial_start_messages.append(parsed_message)
+            trial_start_timestamps.append(msg["timestamp"])
+
+    new_trialmap = np.recarray(
+        shape=(len(trial_start_messages)),
+        dtype=dh5io.trialmap.TRIALMAP_DATASET_DTYPE,
+    )
+
+    for iTrial, msg in enumerate(trial_start_messages):
+
+        new_trialmap[iTrial].TrialNo = msg.trial_index
+        new_trialmap[iTrial].StimNo = msg.trial_type_number
+        # TODO: parse trial end message to get this info
+        new_trialmap[iTrial].Outcome = -1
+        new_trialmap[iTrial].StartTime = np.int64(trial_start_timestamps[iTrial] * 1e9)
+        # TODO:
+        new_trialmap[iTrial].EndTime = 0
+
+    dh5io.trialmap.add_trialmap_to_file(dh5file.file, new_trialmap)

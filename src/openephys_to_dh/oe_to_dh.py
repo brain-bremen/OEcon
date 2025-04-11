@@ -13,10 +13,12 @@ from openephys_to_dh.config import (
     OpenEphysToDhConfig,
     RawConfig,
     SpikeCuttingConfig,
+    TrialMapConfig,
 )
 from openephys_to_dh.decimation import decimate_raw_data
 from openephys_to_dh.events import process_oe_events
 from openephys_to_dh.raw import process_oe_raw_data
+from openephys_to_dh.trialmap import process_oe_trialmap
 
 # Configure logging
 logging.basicConfig(
@@ -57,6 +59,7 @@ def oe_to_dh(
             raw_config=RawConfig(split_channels_into_cont_blocks=True),
             decimation_config=DecimationConfig(),
             event_config=EventPreprocessingConfig(network_events_offset=1000),
+            trialmap_config=TrialMapConfig(),
             spike_cutting_config=SpikeCuttingConfig(),
         )
 
@@ -65,6 +68,11 @@ def oe_to_dh(
 
     if config.event_config is not None:
         process_oe_events(config.event_config, recording=recording, dh5file=dh5file)
+
+    if config.trialmap_config is not None:
+        process_oe_trialmap(
+            config.trialmap_config, recording=recording, dh5file=dh5file
+        )
 
     if config.decimation_config is not None:
         decimate_raw_data(
