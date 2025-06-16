@@ -147,6 +147,8 @@ def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
     if spike_cutting_config is not None:
         spike_cutting_config = SpikeCuttingConfig(**spike_cutting_config)
 
+    # TODO: properly handle enums in dicts
+
     return OpenEphysToDhConfig(
         raw_config=raw_config,
         decimation_config=decimation_config,
