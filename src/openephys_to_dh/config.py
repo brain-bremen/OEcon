@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
+from os import PathLike
+import os
 from enum import StrEnum
 
 from vstim.network_event_codes import VStimEventCode
@@ -92,3 +93,23 @@ class OpenEphysToDhConfig:
     event_config: EventPreprocessingConfig | None
     trialmap_config: TrialMapConfig | None
     spike_cutting_config: SpikeCuttingConfig | None
+
+
+def save_config_to_file(config_filename: PathLike, config: OpenEphysToDhConfig) -> None:
+    import json
+    from dataclasses import asdict
+
+    jsonstringconf = json.dumps(asdict(config), indent=True)
+    with open(config_filename, mode="w") as config_file:
+        config_file.write(jsonstringconf)
+
+
+def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+    with open(config_path, "r") as f:
+        import json
+
+        config_data = json.load(f)
+
+    return OpenEphysToDhConfig(**config_data)

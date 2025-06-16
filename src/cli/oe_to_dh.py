@@ -1,11 +1,10 @@
 import argparse
-import openephys_to_dh
 from openephys_to_dh import oe_to_dh
+from openephys_to_dh.config import OpenEphysToDhConfig, load_config_from_file
 from pathlib import Path
 from open_ephys.analysis.session import Session
 import tkinter as tk
 from tkinter import filedialog
-import os
 import sys
 import winreg
 import logging
@@ -75,7 +74,6 @@ def pick_open_ephys_session_via_dialog() -> Path | None:
 
 
 def main():
-    print("Im here!")
     # oe-to-dh.exe --output-folder <output_folder> --config <config.json> --tdr <path_to_tdr_file> <oe-session>
     parser = argparse.ArgumentParser(
         description="Convert Open Ephys recordings to DH5 format."
@@ -104,6 +102,12 @@ def main():
     if args.oe_session is None:
         return
 
+    # attempt to load config from path if present
+    if args.config:
+        config = load_config_from_file(args.config)
+    else:
+        config = None
+
     # args = parser.parse_args()
 
     oe_session_path = Path(args.oe_session)
@@ -130,6 +134,7 @@ def main():
                 recording=recording,
                 session_name=str(output_folder / session_name),
                 recording_index=recording_index,
+                config=config,
             )
             recording_index += 1
 

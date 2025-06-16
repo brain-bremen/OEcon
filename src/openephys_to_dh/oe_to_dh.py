@@ -1,11 +1,8 @@
-import argparse
 import logging
 from pathlib import Path
-from dataclasses import dataclass, asdict
-import json
+
 import dh5io
 import dh5io.create
-from open_ephys.analysis import Session
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 
 from openephys_to_dh.config import (
@@ -15,6 +12,7 @@ from openephys_to_dh.config import (
     RawConfig,
     SpikeCuttingConfig,
     TrialMapConfig,
+    save_config_to_file,
 )
 from openephys_to_dh.decimation import decimate_raw_data
 from openephys_to_dh.events import process_oe_events
@@ -67,10 +65,8 @@ def oe_to_dh(
             spike_cutting_config=SpikeCuttingConfig(),
         )
 
-    config_filename = f"{session_name}_{recording_index}.config.json"
-    jsonstringconf = json.dumps(asdict(config), indent=True)
-    with open(config_filename, mode="w") as config_file:
-        config_file.write(jsonstringconf)
+    config_filename = Path(f"{session_name}_{recording_index}.config.json")
+    save_config_to_file(config_filename, config)
 
     if config.raw_config is not None:
         process_oe_raw_data(config.raw_config, recording, dh5file)
