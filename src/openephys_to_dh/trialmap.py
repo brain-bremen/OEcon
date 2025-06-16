@@ -2,16 +2,19 @@ import warnings
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
-
+import dhspec
 import dh5io
-import dh5io.trialmap
 import numpy as np
 from dh5io import DH5File
+import dh5io.trialmap
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 from vstim.tdr import TrialOutcome
 
 from openephys_to_dh.config import TrialMapConfig
 from openephys_to_dh.events import EventMetadata, Messages, event_from_eventfolder
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -163,7 +166,6 @@ message_type_parser_map: dict[MessageType, Callable] = {
 def parse_message(
     message: str, accept_without_vstim_prefix: bool = True
 ) -> TrialStartMessage | TrialEndMessage | None:
-
     message = message.strip()
     if message.startswith("VSTIM:"):
         message = message[len("VSTIM:") :]
@@ -184,7 +186,6 @@ def find_message_source(oeinfo: dict) -> EventMetadata | None:
 def get_messages_from_recording(
     recording: BinaryRecording,
 ) -> Messages:
-
     message_source = find_message_source(recording.info)
     assert message_source is not None
 
@@ -199,7 +200,6 @@ def get_messages_from_recording(
 def process_oe_trialmap(
     config: TrialMapConfig, recording: BinaryRecording, dh5file: DH5File
 ):
-
     oe_messages = get_messages_from_recording(recording)
     trial_start_messages: list[TrialStartMessage] = []
     trial_start_timestamps = []
@@ -214,15 +214,31 @@ def process_oe_trialmap(
             trial_end_messages.append(parsed_message)
             trial_end_timestamps.append(msg["timestamp"])
 
-    assert len(trial_start_messages) == len(trial_end_messages)
+    if len(trial_start_messages) != len(trial_end_messages):
+        logger.warning(
+            f"Number of trial start messages ({len(trial_start_messages)}) does not match number of trial end messages ({len(trial_end_messages)})"
+        )
+        if len(trial_start_messages) == len(trial_end_messages) + 1:
+            logger.warning("Attempting correcting by removing last trial start message")
+            trial_start_messages.pop()
+            trial_start_timestamps.pop()
+
+            assert len(trial_start_timestamps) == len(trial_end_messages)
+
+    for i, (start_msg, end_msg) in enumerate(
+        zip(trial_start_messages, trial_end_messages)
+    ):
+        if start_msg.trial_index != end_msg.trial_index:
+            raise ValueError(
+                f"Trial index mismatch at position {i}: start={start_msg.trial_index}, end={end_msg.trial_index}"
+            )
 
     new_trialmap = np.recarray(
         shape=(len(trial_start_messages)),
-        dtype=dh5io.trialmap.TRIALMAP_DATASET_DTYPE,
+        dtype=dhspec.trialmap.TRIALMAP_DATASET_DTYPE,
     )
 
     for iTrial, msg in enumerate(trial_start_messages):
-
         end_message = trial_end_messages[iTrial]
 
         assert msg.trial_index == end_message.trial_index
