@@ -13,23 +13,26 @@ class ContGroups(Enum):
     AP = "AP"
 
 
+DEFAULT_CONT_GROUP_RANGES = {
+    ContGroups.RAW: (
+        1,
+        1600,
+    ),  # room for 4 x 384 = 1536 channels from Neuropixel probe
+    ContGroups.ANALOG: (1601, 2000),
+    # downsampled signals
+    ContGroups.LFP: (2001, 4000),
+    ContGroups.ESA: (4001, 6000),
+    # high-pass filtered signals (not downsamples, should not be used for long-term storage)
+    ContGroups.AP: (6001, 8000),
+}
+
+
 @dataclass_json
 @dataclass
 class RawConfig:
     split_channels_into_cont_blocks: bool = True
     cont_ranges: dict[ContGroups, tuple] = field(
-        default_factory=lambda: {
-            ContGroups.RAW: (
-                1,
-                1600,
-            ),  # room for 4 x 384 = 1536 channels from Neuropixel probe
-            ContGroups.ANALOG: (1601, 2000),
-            # downsampled signals
-            ContGroups.LFP: (2001, 4000),
-            ContGroups.ESA: (4001, 6000),
-            # high-pass filtered signals (not downsamples, should not be used for long-term storage)
-            ContGroups.AP: (6001, 8000),
-        }
+        default_factory=lambda: DEFAULT_CONT_GROUP_RANGES.copy()
     )
 
     oe_processor_cont_group_map: dict[str, ContGroups] = field(
