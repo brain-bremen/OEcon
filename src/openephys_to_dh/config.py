@@ -2,8 +2,12 @@ from dataclasses import dataclass, field
 from os import PathLike
 import os
 from enum import StrEnum
-
+import logging
 from vstim.network_event_codes import VStimEventCode
+
+VERSION = 1
+
+logger = logging.getLogger(__name__)
 
 
 class ContGroups(StrEnum):
@@ -93,12 +97,14 @@ class OpenEphysToDhConfig:
     event_config: EventPreprocessingConfig | None
     trialmap_config: TrialMapConfig | None
     spike_cutting_config: SpikeCuttingConfig | None
+    version: int = VERSION
 
 
 def save_config_to_file(config_filename: PathLike, config: OpenEphysToDhConfig) -> None:
     import json
     from dataclasses import asdict
 
+    logger.info(f"Saving configration to {config_filename}")
     jsonstringconf = json.dumps(asdict(config), indent=True)
     with open(config_filename, mode="w") as config_file:
         config_file.write(jsonstringconf)
@@ -107,9 +113,44 @@ def save_config_to_file(config_filename: PathLike, config: OpenEphysToDhConfig) 
 def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
+
+    logger.info(f"Loading configuration from {config_path}")
     with open(config_path, "r") as f:
         import json
 
         config_data = json.load(f)
 
-    return OpenEphysToDhConfig(**config_data)
+    if "version" not in config_data:
+        logger.warning(
+            "Configuration file does not contain a version. Assuming version {VERSION}. This may fail."
+        )
+
+    if config_data["version"] > VERSION:
+        raise ValueError(
+            f"Configuration file version {config_data['version']} is newer than supported version {VERSION}."
+        )
+
+    raw_config = config_data.get("raw_config", None)
+    if raw_config is not None:
+        raw_config = RawConfig(**raw_config)
+
+    decimation_config = config_data.get("decimation_config", None)
+    if decimation_config is not None:
+        decimation_config = DecimationConfig(**decimation_config)
+    event_config = config_data.get("event_config", None)
+    if event_config is not None:
+        event_config = EventPreprocessingConfig(**event_config)
+    trialmap_config = config_data.get("trialmap_config", None)
+    if trialmap_config is not None:
+        trialmap_config = TrialMapConfig(**trialmap_config)
+    spike_cutting_config = config_data.get("spike_cutting_config", None)
+    if spike_cutting_config is not None:
+        spike_cutting_config = SpikeCuttingConfig(**spike_cutting_config)
+
+    return OpenEphysToDhConfig(
+        raw_config=raw_config,
+        decimation_config=decimation_config,
+        event_config=event_config,
+        trialmap_config=trialmap_config,
+        spike_cutting_config=spike_cutting_config,
+    )
