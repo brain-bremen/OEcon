@@ -1,16 +1,24 @@
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
-from enum import Enum
+from enum import StrEnum
 
 from vstim.network_event_codes import VStimEventCode
 
 
-class ContGroups(Enum):
+class ContGroups(StrEnum):
     RAW = "RAW"
     ANALOG = "ANALOG"
     LFP = "LFP"
     ESA = "ESA"
     AP = "AP"
+
+
+DEFAULT_OE_STREAM_MAPPING = {
+    "PXIe-6341": ContGroups.RAW,
+    "PCIe-6341": ContGroups.RAW,
+    "example_data": ContGroups.RAW,
+    "Neuropix-PXI": ContGroups.RAW,
+}
 
 
 DEFAULT_CONT_GROUP_RANGES = {
@@ -27,7 +35,7 @@ DEFAULT_CONT_GROUP_RANGES = {
 }
 
 
-@dataclass_json
+# @dataclass_json
 @dataclass
 class RawConfig:
     split_channels_into_cont_blocks: bool = True
@@ -36,22 +44,17 @@ class RawConfig:
     )
 
     oe_processor_cont_group_map: dict[str, ContGroups] = field(
-        default_factory=lambda: {
-            "PXIe-6341": ContGroups.RAW,
-            "PCIe-6341": ContGroups.RAW,
-            "example_data": ContGroups.RAW,
-            "Neuropix-PXI": ContGroups.RAW,
-        }
+        default_factory=lambda: DEFAULT_OE_STREAM_MAPPING.copy()
     )
 
 
-@dataclass_json
+# @dataclass_json
 @dataclass
 class EsaMuaConfig:
     pass
 
 
-@dataclass_json
+# @dataclass_json
 @dataclass
 class EventPreprocessingConfig:
     network_events_offset: int = 1000
@@ -61,25 +64,20 @@ class EventPreprocessingConfig:
     ttl_line_names: dict[str, int] | None = None
 
 
-@dataclass_json
 @dataclass
 class TrialMapConfig:
     use_message_center_messages: bool = True
     trial_start_ttl_line: int | None = None
 
 
-@dataclass_json
 @dataclass
 class SpikeCuttingConfig:
     pass
 
 
-@dataclass_json
 @dataclass
 class DecimationConfig:
-    downsampling_factor: dict[str, int] = field(
-        default_factory=lambda: {"some_identifier": 30}
-    )
+    downsampling_factor: int = 30
     ftype: str = "fir"
     zero_phase: bool = True
     filter_order: int | None = 600
@@ -87,7 +85,6 @@ class DecimationConfig:
     start_block_id: int = 2001
 
 
-@dataclass_json
 @dataclass
 class OpenEphysToDhConfig:
     raw_config: RawConfig | None

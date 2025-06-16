@@ -1,6 +1,6 @@
 import warnings
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Callable
 import dhspec
 import dh5io
@@ -146,7 +146,7 @@ def parse_trial_end_message(message_string: str) -> TrialEndMessage:
     )
 
 
-class MessageType(Enum):
+class MessageType(StrEnum):
     TRIAL_START = "TRIAL_START"
     TRIAL_END = "TRIAL_END"
     UNKNOWN = "UNKNOWN"
@@ -201,6 +201,7 @@ def process_oe_trialmap(
     config: TrialMapConfig, recording: BinaryRecording, dh5file: DH5File
 ):
     oe_messages = get_messages_from_recording(recording)
+    logger.info(f"Create trialmap {len(oe_messages.text)} trial messages")
     trial_start_messages: list[TrialStartMessage] = []
     trial_start_timestamps = []
     trial_end_messages: list[TrialEndMessage] = []

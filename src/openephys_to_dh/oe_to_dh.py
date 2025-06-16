@@ -1,7 +1,8 @@
 import argparse
 import logging
 from pathlib import Path
-
+from dataclasses import dataclass, asdict
+import json
 import dh5io
 import dh5io.create
 from open_ephys.analysis import Session
@@ -36,9 +37,9 @@ def oe_to_dh(
     recording_index: int = 0,
     config: OpenEphysToDhConfig | None = None,
 ):
-    assert (
-        recording.continuous is not None
-    ), "No continuous data found in the recording."
+    assert recording.continuous is not None, (
+        "No continuous data found in the recording."
+    )
 
     if len(recording.continuous) == 0:
         raise ValueError(
@@ -50,8 +51,11 @@ def oe_to_dh(
         for cont in recording.continuous
     ]
     dh5filename = f"{session_name}_{recording_index}.dh5"
+    logger.info(
+        f"Converting OpenEphys recording from {recording.directory} to {dh5filename}"
+    )
     dh5file = dh5io.create.create_dh_file(
-        dh5filename, overwrite=True, boards=board_names
+        dh5filename, overwrite=True, boards=board_names, validate=False
     )
 
     if config is None:
@@ -62,6 +66,11 @@ def oe_to_dh(
             trialmap_config=TrialMapConfig(),
             spike_cutting_config=SpikeCuttingConfig(),
         )
+
+    config_filename = f"{session_name}_{recording_index}.config.json"
+    jsonstringconf = json.dumps(asdict(config), indent=True)
+    with open(config_filename, mode="w") as config_file:
+        config_file.write(jsonstringconf)
 
     if config.raw_config is not None:
         process_oe_raw_data(config.raw_config, recording, dh5file)

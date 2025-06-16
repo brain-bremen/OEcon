@@ -6,9 +6,13 @@ import numpy as np
 import pprint
 import os
 import warnings
-from open_ephys.analysis.formats import BinaryRecording
+from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 import dh5io.event_triggers
 from openephys_to_dh.config import EventPreprocessingConfig
+import logging
+from dhspec.event_triggers import EV_DATASET_NAME
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -75,11 +79,13 @@ class Event:
             == len(self.timestamps)
             == len(self.states)
             == len(self.sample_numbers)
-        ), f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.states)}, {len(self.sample_numbers)}"
+        ), (
+            f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.states)}, {len(self.sample_numbers)}"
+        )
         return len(self.full_words)
 
     @staticmethod
-    def from_folder(full_event_folder_path: str | Path, metadata=EventMetadata):
+    def from_folder(full_event_folder_path: str | Path, metadata: EventMetadata):
         return Event(
             metadata=metadata,
             full_words=np.load(os.path.join(full_event_folder_path, "full_words.npy")),
@@ -96,7 +102,9 @@ class Event:
         # verify all args have same length
         assert (
             len(full_words) == len(timestamps) == len(states) == len(sample_numbers)
-        ), f"Length mismatch: {len(full_words)}, {len(timestamps)}, {len(states)}, {len(sample_numbers)}"
+        ), (
+            f"Length mismatch: {len(full_words)}, {len(timestamps)}, {len(states)}, {len(sample_numbers)}"
+        )
         self.metadata = metadata
         self.full_words = full_words
         self.timestamps = timestamps
@@ -125,7 +133,9 @@ class FullWordEvent:
     def __len__(self):
         assert (
             len(self.full_words) == len(self.timestamps) == len(self.sample_numbers)
-        ), f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.sample_numbers)}"
+        ), (
+            f"Length mismatch: {len(self.full_words)}, {len(self.timestamps)}, {len(self.sample_numbers)}"
+        )
         return len(self.full_words)
 
 
@@ -158,9 +168,9 @@ def event_from_eventfolder(
         Path(recording_directory) / "events" / Path(metadata.folder_name)
     )
 
-    assert os.path.exists(
-        full_event_folder_path
-    ), f"Events folder {full_event_folder_path} does not exist"
+    assert os.path.exists(full_event_folder_path), (
+        f"Events folder {full_event_folder_path} does not exist"
+    )
 
     # return data based on metadata.source_processor
     match metadata.source_processor:
@@ -199,6 +209,7 @@ def find_marker_source(oeinfo: dict):
 def process_oe_events(
     event_config: EventPreprocessingConfig, recording: BinaryRecording, dh5file: DH5File
 ):
+    logger.info(f"Processing events in {dh5file.file.filename}")
 
     timestamps_ns = np.array([], dtype=np.int64)
     event_codes = np.array([], dtype=np.int32)
@@ -206,6 +217,9 @@ def process_oe_events(
     # TTL
     ev02_source_metadata = find_ev02_source(recording.info)
     if ev02_source_metadata is not None:
+        logging.info(
+            f"Processing TTL triggers from {ev02_source_metadata.stream_name} stream"
+        )
         network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,
             metadata=ev02_source_metadata,
@@ -221,6 +235,9 @@ def process_oe_events(
     network_events_source = find_marker_source(recording.info)
     network_events_offset = event_config.network_events_offset
     if network_events_source is not None:
+        logger.info(
+            f"Processing Network Events from {network_events_source.stream_name} stream"
+        )
         network_events_words = event_from_eventfolder(
             recording_directory=recording.directory,
             metadata=network_events_source,
@@ -248,7 +265,7 @@ def process_oe_events(
 
     # add names of event codes as attributes to filed
     if event_config.ttl_line_names is not None:
-        ev02_dataset = dh5file.file["EV02"]
+        ev02_dataset = dh5file.file[EV_DATASET_NAME]
         for event_name, event_code in event_config.ttl_line_names.items():
             ev02_dataset.attrs[str(event_name)] = np.int32(
                 event_code + network_events_offset
@@ -256,9 +273,11 @@ def process_oe_events(
 
     if network_events_source is not None:
         # add names of events as attributes to dataset
-        ev02_dataset = dh5file.file["EV02"]
+        logging.debug(
+            f"Adding network events code names to dataset {EV_DATASET_NAME} with offset {network_events_offset}"
+        )
+        ev02_dataset = dh5file.file[EV_DATASET_NAME]
         if event_config.network_events_code_name_map is not None:
-
             for (
                 event_name,
                 event_code,
