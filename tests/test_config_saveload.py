@@ -85,7 +85,7 @@ def test_load_config_with_newer_version(tmp_path):
         "event_config": None,
         "trialmap_config": None,
         "spike_cutting_config": None,
-        "version": VERSION + 1,
+        "config_version": VERSION + 1,
     }
     config_path = tmp_path / "newer_version_config.json"
     with open(config_path, "w") as f:

@@ -97,7 +97,13 @@ class OpenEphysToDhConfig:
     event_config: EventPreprocessingConfig | None
     trialmap_config: TrialMapConfig | None
     spike_cutting_config: SpikeCuttingConfig | None
-    version: int = VERSION
+    config_version: int = VERSION
+    oecon_version: str = field(
+        default_factory=lambda: __import__(
+            "oecon.version"
+        ).version.get_version_from_pyproject(),
+        init=False,
+    )
 
 
 def save_config_to_file(config_filename: PathLike, config: OpenEphysToDhConfig) -> None:
@@ -120,14 +126,15 @@ def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
 
         config_data = json.load(f)
 
-    if "version" not in config_data:
+    if "config_version" not in config_data:
         logger.warning(
             "Configuration file does not contain a version. Assuming version {VERSION}. This may fail."
         )
+        config_data["config_version"] = VERSION
 
-    if config_data["version"] > VERSION:
+    if config_data["config_version"] > VERSION:
         raise ValueError(
-            f"Configuration file version {config_data['version']} is newer than supported version {VERSION}."
+            f"Configuration file version {config_data['config_version']} is newer than supported version {VERSION}."
         )
 
     raw_config = config_data.get("raw_config", None)

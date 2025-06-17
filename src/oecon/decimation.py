@@ -1,5 +1,6 @@
 import dh5io
 import dh5io.cont
+import dh5io.operations
 import dhspec
 from dh5io import DH5File
 import numpy as np
@@ -7,6 +8,7 @@ import scipy.signal as signal
 from oecon.config import DecimationConfig
 from open_ephys.analysis.recording import Recording
 import logging
+import oecon.version
 
 logger = logging.getLogger(__name__)
 
@@ -80,3 +82,9 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
 
             dh5_cont_id += 1
             global_channel_index += 1
+
+    dh5io.operations.add_operation_to_file(
+        dh5file,
+        "decimate_raw_data",
+        f"oecon_v{oecon.version.get_version_from_pyproject()}",
+    )
