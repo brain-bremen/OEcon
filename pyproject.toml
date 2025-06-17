@@ -33,4 +33,4 @@ dev = [
 
 
 [project.scripts]
-oecon = "cli.oecon:main"
+oecon = "cli.main:main"
