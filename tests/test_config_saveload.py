@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import tempfile
 import pytest
 import json
@@ -30,7 +31,7 @@ def make_sample_config():
 def test_save_and_load_config_roundtrip():
     config = make_sample_config()
     with tempfile.TemporaryDirectory() as tmpdir:
-        config_path = os.path.join(tmpdir, "test_config.json")
+        config_path = Path(os.path.join(tmpdir, "test_config.json"))
         save_config_to_file(config_path, config)
         loaded_config = load_config_from_file(config_path)
         # TODO
@@ -44,7 +45,7 @@ def test_save_and_load_config_roundtrip():
 def test_save_config_creates_file():
     config = make_sample_config()
     with tempfile.TemporaryDirectory() as tmpdir:
-        config_path = os.path.join(tmpdir, "test_config.json")
+        config_path = Path(os.path.join(tmpdir, "test_config.json"))
         save_config_to_file(config_path, config)
         assert os.path.exists(config_path)
         with open(config_path, "r") as f:
@@ -55,7 +56,7 @@ def test_save_config_creates_file():
 
 def test_load_config_file_not_found():
     with pytest.raises(FileNotFoundError):
-        load_config_from_file("nonexistent_config_file.json")
+        load_config_from_file(Path("nonexistent_config_file.json"))
 
 
 def test_save_and_load_config_with_none_fields():
@@ -67,7 +68,7 @@ def test_save_and_load_config_with_none_fields():
         spike_cutting_config=None,
     )
     with tempfile.TemporaryDirectory() as tmpdir:
-        config_path = os.path.join(tmpdir, "test_config_none.json")
+        config_path = Path(os.path.join(tmpdir, "test_config_none.json"))
         save_config_to_file(config_path, config)
         loaded_config = load_config_from_file(config_path)
         assert loaded_config.raw_config is None
@@ -93,5 +94,5 @@ def test_load_config_with_newer_version(tmp_path):
     import oecon.config as config_mod
 
     with pytest.raises(ValueError) as excinfo:
-        config_mod.load_config_from_file(str(config_path))
+        config_mod.load_config_from_file(config_path)
     assert "newer than supported version" in str(excinfo.value)

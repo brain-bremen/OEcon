@@ -3,10 +3,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Callable
 import dhspec
+import dhspec.trialmap
 import dh5io
 import numpy as np
 from dh5io import DH5File
 import dh5io.trialmap
+from open_ephys.analysis.recording import Recording
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 from vstim.tdr import TrialOutcome
 
@@ -183,9 +185,11 @@ def find_message_source(oeinfo: dict) -> EventMetadata | None:
     return None
 
 
-def get_messages_from_recording(
-    recording: BinaryRecording,
-) -> Messages:
+def get_messages_from_recording(recording: Recording) -> Messages:
+    assert isinstance(recording, BinaryRecording), (
+        "Recording must be a BinaryRecording to process events."
+    )
+
     message_source = find_message_source(recording.info)
     assert message_source is not None
 
@@ -197,9 +201,7 @@ def get_messages_from_recording(
     return messages
 
 
-def process_oe_trialmap(
-    config: TrialMapConfig, recording: BinaryRecording, dh5file: DH5File
-):
+def process_oe_trialmap(config: TrialMapConfig, recording: Recording, dh5file: DH5File):
     oe_messages = get_messages_from_recording(recording)
     logger.info(f"Create trialmap {len(oe_messages.text)} trial messages")
     trial_start_messages: list[TrialStartMessage] = []

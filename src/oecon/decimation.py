@@ -77,14 +77,14 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
                 sample_period_ns=np.int32(1.0 / oe_metadata.sample_rate * 1e9),
                 name=channel_name,
                 channels=channel_info,
-                calibration=oe_metadata.bit_volts[channel_index],
+                calibration=np.array(oe_metadata.bit_volts[channel_index]),
             )
 
             dh5_cont_id += 1
             global_channel_index += 1
 
     dh5io.operations.add_operation_to_file(
-        dh5file,
+        dh5file.file,
         "decimate_raw_data",
         f"oecon_v{oecon.version.get_version_from_pyproject()}",
     )

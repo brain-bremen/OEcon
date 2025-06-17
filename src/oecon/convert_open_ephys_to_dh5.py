@@ -3,7 +3,7 @@ from pathlib import Path
 
 import dh5io
 import dh5io.create
-from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
+from open_ephys.analysis.recording import Recording
 
 from oecon.config import (
     DecimationConfig,
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 def convert_open_ephys_recording_to_dh5(
-    recording: BinaryRecording,
+    recording: Recording,
     session_name: str,
     recording_index: int = 0,
     config: OpenEphysToDhConfig | None = None,

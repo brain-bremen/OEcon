@@ -1,5 +1,6 @@
 from oecon.config import RawConfig, ContGroups
-from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
+from open_ephys.analysis.recording import Continuous
+from open_ephys.analysis.recording import Recording
 from open_ephys.analysis.recording import ContinuousMetadata
 from dh5io import DH5File
 import dh5io
@@ -34,14 +35,14 @@ def create_cont_group_per_channel(
         data = oe_continuous.samples[:, channel_index : channel_index + 1]
 
         create_cont_group_from_data_in_file(
-            file=dh5file,
+            file=dh5file.file,
             cont_group_id=dh5_cont_id,
             data=data,
             index=index,
             sample_period_ns=np.int32(1.0 / metadata.sample_rate * 1e9),
             name=name,
             channels=channel_info,
-            calibration=metadata.bit_volts[channel_index],
+            calibration=np.array(metadata.bit_volts[channel_index]),
         )
 
         global_channel_index += 1
@@ -86,9 +87,7 @@ def create_cont_group_per_continuous_stream(
     )
 
 
-def process_oe_raw_data(
-    config: RawConfig, recording: BinaryRecording, dh5file: DH5File
-):
+def process_oe_raw_data(config: RawConfig, recording: Recording, dh5file: DH5File):
     assert recording.continuous is not None, (
         "No continuous data found in the recording."
     )

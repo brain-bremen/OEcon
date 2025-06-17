@@ -1,16 +1,21 @@
-import dh5io
+import logging
+import os
+import pprint
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from dh5io import DH5File
-import numpy as np
-import pprint
-import os
-import warnings
-from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
+
+import dh5io
 import dh5io.event_triggers
-from oecon.config import EventPreprocessingConfig
-import logging
+import dh5io.operations
+import numpy as np
+from dh5io import DH5File
 from dhspec.event_triggers import EV_DATASET_NAME
+from open_ephys.analysis.recording import Recording
+from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
+
+import oecon.version
+from oecon.config import EventPreprocessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -207,12 +212,16 @@ def find_marker_source(oeinfo: dict):
 
 
 def process_oe_events(
-    event_config: EventPreprocessingConfig, recording: BinaryRecording, dh5file: DH5File
+    event_config: EventPreprocessingConfig, recording: Recording, dh5file: DH5File
 ):
     logger.info(f"Processing events in {dh5file.file.filename}")
 
     timestamps_ns = np.array([], dtype=np.int64)
     event_codes = np.array([], dtype=np.int32)
+
+    assert isinstance(recording, BinaryRecording), (
+        "Recording must be a BinaryRecording to process events."
+    )
 
     # TTL
     ev02_source_metadata = find_ev02_source(recording.info)
@@ -285,3 +294,10 @@ def process_oe_events(
                 ev02_dataset.attrs[str(event_name)] = np.int32(
                     event_code + network_events_offset
                 )
+
+    # add operation to dh5 file
+    dh5io.operations.add_operation_to_file(
+        file=dh5file.file,
+        new_operation_group_name="oecon_process_events",
+        tool=f"oecon_v{oecon.version.get_version_from_pyproject()}",
+    )
