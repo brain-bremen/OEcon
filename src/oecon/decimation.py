@@ -4,7 +4,7 @@ import dhspec
 from dh5io import DH5File
 import numpy as np
 import scipy.signal as signal
-from openephys_to_dh.config import DecimationConfig
+from oecon.config import DecimationConfig
 from open_ephys.analysis.recording import Recording
 import logging
 

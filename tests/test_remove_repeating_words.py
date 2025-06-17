@@ -1,6 +1,6 @@
 from random import sample
-import openephys_to_dh
-from openephys_to_dh.events import (
+import oecon
+from oecon.events import (
     Event,
     EventMetadata,
     FullWordEvent,

@@ -10,8 +10,8 @@ import dh5io.trialmap
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 from vstim.tdr import TrialOutcome
 
-from openephys_to_dh.config import TrialMapConfig
-from openephys_to_dh.events import EventMetadata, Messages, event_from_eventfolder
+from oecon.config import TrialMapConfig
+from oecon.events import EventMetadata, Messages, event_from_eventfolder
 import logging
 
 logger = logging.getLogger(__name__)

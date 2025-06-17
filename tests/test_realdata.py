@@ -3,8 +3,10 @@ import os
 import open_ephys.analysis as oe
 from open_ephys.analysis.formats import BinaryRecording
 import pytest
-from openephys_to_dh.oe_to_dh import oe_to_dh as oerec2dh
-from openephys_to_dh.events import (
+from oecon.convert_open_ephys_to_dh5 import (
+    convert_open_ephys_recording_to_dh5 as oerec2dh,
+)
+from oecon.events import (
     EventMetadata,
     Event,
     Messages,
@@ -36,7 +38,6 @@ def recording() -> BinaryRecording:
 
 @pytest.mark.skipif(skip_real_data_tests, reason="Data folder does not exist")
 def test_load_data(recording):
-
     oerec2dh(
         recording,
         session_name,

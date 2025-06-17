@@ -1,6 +1,6 @@
 import argparse
-from openephys_to_dh import oe_to_dh
-from openephys_to_dh.config import OpenEphysToDhConfig, load_config_from_file
+from oecon import convert_open_ephys_recording_to_dh5
+from oecon.config import load_config_from_file
 from pathlib import Path
 from open_ephys.analysis.session import Session
 import tkinter as tk
@@ -108,8 +108,6 @@ def main():
     else:
         config = None
 
-    # args = parser.parse_args()
-
     oe_session_path = Path(args.oe_session)
     if not oe_session_path.exists():
         raise FileNotFoundError(
@@ -130,7 +128,7 @@ def main():
     recording_index = 0
     for node in session.recordnodes:
         for recording in node.recordings:
-            oe_to_dh(
+            convert_open_ephys_recording_to_dh5(
                 recording=recording,
                 session_name=str(output_folder / session_name),
                 recording_index=recording_index,
@@ -143,4 +141,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logger.error(f"Error occurred: {e}")
+        logger.error(f"Error occurred: {e}", exc_info=True)
+        logger.error(f"Current config value: {locals().get('config', None)}")

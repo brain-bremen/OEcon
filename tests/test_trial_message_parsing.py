@@ -1,5 +1,5 @@
 import pytest
-from openephys_to_dh.trialmap import (
+from oecon.trialmap import (
     TrialStartMessage,
     TrialEndMessage,
     parse_trial_start_message,
@@ -10,7 +10,6 @@ from vstim.tdr import TrialOutcome
 
 
 def test_parse_trial_start_message():
-
     # without prefix
     message = "TRIAL_START 1 TRIALTYPE 0 TIMESEQUENCE 0 FRAME 1032"
     data = parse_trial_start_message(message)

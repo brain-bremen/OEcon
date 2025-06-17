@@ -1,5 +1,5 @@
 [project]
-name = "openephys-to-dh"
+name = "OEcon"
 version = "0.1.0"
 description = "Python tools to convert and preprocess OpenEphys data to the DAQ-HDF5 (dh5) format"
 readme = "README.md"
@@ -29,5 +29,4 @@ dev = ["pytest>=8.3.5"]
 
 
 [project.scripts]
-oe_to_dh = "cli.oe_to_dh:main"
-dhtree = "cli.dhtree:main"
+oecon = "cli.oecon:main"

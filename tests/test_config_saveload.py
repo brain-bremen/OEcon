@@ -4,7 +4,7 @@ import pytest
 import json
 
 
-from openephys_to_dh.config import (
+from oecon.config import (
     OpenEphysToDhConfig,
     RawConfig,
     DecimationConfig,
@@ -90,7 +90,7 @@ def test_load_config_with_newer_version(tmp_path):
     config_path = tmp_path / "newer_version_config.json"
     with open(config_path, "w") as f:
         json.dump(config_data, f)
-    import openephys_to_dh.config as config_mod
+    import oecon.config as config_mod
 
     with pytest.raises(ValueError) as excinfo:
         config_mod.load_config_from_file(str(config_path))

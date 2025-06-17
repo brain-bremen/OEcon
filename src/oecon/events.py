@@ -8,7 +8,7 @@ import os
 import warnings
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 import dh5io.event_triggers
-from openephys_to_dh.config import EventPreprocessingConfig
+from oecon.config import EventPreprocessingConfig
 import logging
 from dhspec.event_triggers import EV_DATASET_NAME
 
@@ -21,7 +21,7 @@ class EventMetadata:
     folder_name: str
     identifier: str
     sample_rate: float
-    stream_name: str
+    stream_name: str  # asdljkalskdjalskjdalskjd asdlkjasd asdlajskdas
     type: str
     description: str
     source_processor: str

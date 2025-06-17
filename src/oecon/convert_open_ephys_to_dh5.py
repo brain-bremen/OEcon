@@ -5,7 +5,7 @@ import dh5io
 import dh5io.create
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 
-from openephys_to_dh.config import (
+from oecon.config import (
     DecimationConfig,
     EventPreprocessingConfig,
     OpenEphysToDhConfig,
@@ -14,10 +14,10 @@ from openephys_to_dh.config import (
     TrialMapConfig,
     save_config_to_file,
 )
-from openephys_to_dh.decimation import decimate_raw_data
-from openephys_to_dh.events import process_oe_events
-from openephys_to_dh.raw import process_oe_raw_data
-from openephys_to_dh.trialmap import process_oe_trialmap
+from oecon.decimation import decimate_raw_data
+from oecon.events import process_oe_events
+from oecon.raw import process_oe_raw_data
+from oecon.trialmap import process_oe_trialmap
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def oe_to_dh(
+def convert_open_ephys_recording_to_dh5(
     recording: BinaryRecording,
     session_name: str,
     recording_index: int = 0,
@@ -50,7 +50,7 @@ def oe_to_dh(
     ]
     dh5filename = f"{session_name}_{recording_index}.dh5"
     logger.info(
-        f"Converting OpenEphys recording from {recording.directory} to {dh5filename}"
+        f"Start converting OpenEphys recording from {recording.directory} to {dh5filename}"
     )
     dh5file = dh5io.create.create_dh_file(
         dh5filename, overwrite=True, boards=board_names, validate=False
@@ -83,3 +83,8 @@ def oe_to_dh(
         decimate_raw_data(
             config.decimation_config, recording=recording, dh5file=dh5file
         )
+
+    logger.info(
+        f"Finished converting OpenEphys recording from {recording.directory} to {dh5filename}"
+    )
+    # report resulting file size in a human readable format

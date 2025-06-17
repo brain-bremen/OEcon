@@ -1,8 +1,10 @@
-from openephys_to_dh.config import RawConfig, ContGroups
+from oecon.config import RawConfig, ContGroups
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording, Continuous
 from open_ephys.analysis.recording import ContinuousMetadata
 from dh5io import DH5File
 import dh5io
+from dhspec.cont import create_empty_index_array, create_channel_info
+from dh5io.cont import create_cont_group_from_data_in_file
 import numpy as np
 
 
@@ -14,13 +16,13 @@ def create_cont_group_per_channel(
     first_global_channel_index: int,
 ):
     global_channel_index = first_global_channel_index
-    index = dh5io.cont.create_empty_index_array(1)
+    index = create_empty_index_array(n_index_items=1)
 
     assert metadata.channel_names is not None, "Channel names are not set in OE data."
     for channel_index, name in enumerate(metadata.channel_names):
         dh5_cont_id = start_cont_id + channel_index
 
-        channel_info = dh5io.cont.create_channel_info(
+        channel_info = create_channel_info(
             GlobalChanNumber=global_channel_index,
             BoardChanNo=channel_index,
             ADCBitWidth=16,
@@ -31,7 +33,7 @@ def create_cont_group_per_channel(
 
         data = oe_continuous.samples[:, channel_index : channel_index + 1]
 
-        dh5io.cont.create_cont_group_from_data_in_file(
+        create_cont_group_from_data_in_file(
             file=dh5file,
             cont_group_id=dh5_cont_id,
             data=data,
@@ -52,7 +54,6 @@ def create_cont_group_per_continuous_stream(
     start_cont_id: int,
     last_global_channel_index: int = 0,
 ):
-
     raise NotImplementedError("Grouping channels into CONT blocks is not yet supported")
 
     # create a CONT group for the entire continuous stream
@@ -88,10 +89,9 @@ def create_cont_group_per_continuous_stream(
 def process_oe_raw_data(
     config: RawConfig, recording: BinaryRecording, dh5file: DH5File
 ):
-
-    assert (
-        recording.continuous is not None
-    ), "No continuous data found in the recording."
+    assert recording.continuous is not None, (
+        "No continuous data found in the recording."
+    )
 
     # continuous raw data
     global_channel_index = 0
