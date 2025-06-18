@@ -1,4 +1,5 @@
-from oecon.config import RawConfig, ContGroups
+from dataclasses import dataclass, field
+import oecon.default_mappings as default
 from open_ephys.analysis.recording import Continuous
 from open_ephys.analysis.recording import Recording
 from open_ephys.analysis.recording import ContinuousMetadata
@@ -7,6 +8,17 @@ import dh5io
 from dhspec.cont import create_empty_index_array, create_channel_info
 from dh5io.cont import create_cont_group_from_data_in_file
 import numpy as np
+
+
+@dataclass
+class RawConfig:
+    split_channels_into_cont_blocks: bool = True
+    cont_ranges: dict[default.ContGroups, tuple] = field(
+        default_factory=lambda: default.DEFAULT_CONT_GROUP_RANGES.copy()
+    )
+    oe_processor_cont_group_map: dict[str, default.ContGroups] = field(
+        default_factory=lambda: default.DEFAULT_OE_STREAM_MAPPING.copy()
+    )
 
 
 def create_cont_group_per_channel(

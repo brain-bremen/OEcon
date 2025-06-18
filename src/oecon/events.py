@@ -2,7 +2,7 @@ import logging
 import os
 import pprint
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import dh5io
@@ -11,13 +11,22 @@ import dh5io.operations
 import numpy as np
 from dh5io import DH5File
 from dhspec.event_triggers import EV_DATASET_NAME
-from open_ephys.analysis.recording import Recording
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
+from open_ephys.analysis.recording import Recording
+from vstim.network_event_codes import VStimEventCode
 
 import oecon.version
-from oecon.config import EventPreprocessingConfig
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class EventPreprocessingConfig:
+    network_events_offset: int = 1000
+    network_events_code_name_map: dict[str, int] | None = field(
+        default_factory=lambda: VStimEventCode.asdict()
+    )
+    ttl_line_names: dict[str, int] | None = None
 
 
 @dataclass

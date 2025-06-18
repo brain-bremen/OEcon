@@ -1,93 +1,22 @@
+import logging
+import os
 from dataclasses import dataclass, field
 from os import PathLike
-import os
-from enum import StrEnum
-import logging
-from vstim.network_event_codes import VStimEventCode
+
+from oecon.decimation import DecimationConfig
+from oecon.events import EventPreprocessingConfig
+from oecon.raw import RawConfig
+from oecon.trialmap import TrialMapConfig
+from oecon.mua import MuaConfig
 
 VERSION = 1
 
 logger = logging.getLogger(__name__)
 
 
-class ContGroups(StrEnum):
-    RAW = "RAW"
-    ANALOG = "ANALOG"
-    LFP = "LFP"
-    ESA = "ESA"
-    AP = "AP"
-
-
-DEFAULT_OE_STREAM_MAPPING = {
-    "PXIe-6341": ContGroups.RAW,
-    "PCIe-6341": ContGroups.RAW,
-    "example_data": ContGroups.RAW,
-    "Neuropix-PXI": ContGroups.RAW,
-}
-
-
-DEFAULT_CONT_GROUP_RANGES = {
-    ContGroups.RAW: (
-        1,
-        1600,
-    ),  # room for 4 x 384 = 1536 channels from Neuropixel probe
-    ContGroups.ANALOG: (1601, 2000),
-    # downsampled signals
-    ContGroups.LFP: (2001, 4000),
-    ContGroups.ESA: (4001, 6000),
-    # high-pass filtered signals (not downsamples, should not be used for long-term storage)
-    ContGroups.AP: (6001, 8000),
-}
-
-
-# @dataclass_json
-@dataclass
-class RawConfig:
-    split_channels_into_cont_blocks: bool = True
-    cont_ranges: dict[ContGroups, tuple] = field(
-        default_factory=lambda: DEFAULT_CONT_GROUP_RANGES.copy()
-    )
-
-    oe_processor_cont_group_map: dict[str, ContGroups] = field(
-        default_factory=lambda: DEFAULT_OE_STREAM_MAPPING.copy()
-    )
-
-
-# @dataclass_json
-@dataclass
-class EsaMuaConfig:
-    pass
-
-
-# @dataclass_json
-@dataclass
-class EventPreprocessingConfig:
-    network_events_offset: int = 1000
-    network_events_code_name_map: dict[str, int] | None = field(
-        default_factory=lambda: VStimEventCode.asdict()
-    )
-    ttl_line_names: dict[str, int] | None = None
-
-
-@dataclass
-class TrialMapConfig:
-    use_message_center_messages: bool = True
-    trial_start_ttl_line: int | None = None
-
-
 @dataclass
 class SpikeCuttingConfig:
     pass
-
-
-@dataclass
-class DecimationConfig:
-    downsampling_factor: int = 30
-    ftype: str = "fir"
-    zero_phase: bool = True
-    filter_order: int | None = 600
-    channel_names: list[str] | None = None  # doall if None
-    start_block_id: int = 2001
 
 
 @dataclass

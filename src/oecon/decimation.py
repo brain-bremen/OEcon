@@ -1,16 +1,28 @@
+import logging
+from dataclasses import dataclass
+
 import dh5io
 import dh5io.cont
 import dh5io.operations
 import dhspec
-from dh5io import DH5File
 import numpy as np
 import scipy.signal as signal
-from oecon.config import DecimationConfig
+from dh5io import DH5File
 from open_ephys.analysis.recording import Recording
-import logging
+
 import oecon.version
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DecimationConfig:
+    downsampling_factor: int = 30
+    ftype: str = "fir"
+    zero_phase: bool = True
+    filter_order: int | None = 600
+    channel_names: list[str] | None = None  # doall if None
+    start_block_id: int = 2001
 
 
 def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: DH5File):
@@ -50,7 +62,6 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
                 selected_channel_names=[channel_name],
             )
             # samples x channels
-
             decimated_samples = signal.decimate(
                 x=samples,
                 q=config.downsampling_factor,

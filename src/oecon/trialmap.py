@@ -12,11 +12,16 @@ from open_ephys.analysis.recording import Recording
 from open_ephys.analysis.formats.BinaryRecording import BinaryRecording
 from vstim.tdr import TrialOutcome
 
-from oecon.config import TrialMapConfig
 from oecon.events import EventMetadata, Messages, event_from_eventfolder
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class TrialMapConfig:
+    use_message_center_messages: bool = True
+    trial_start_ttl_line: int | None = None
 
 
 @dataclass
