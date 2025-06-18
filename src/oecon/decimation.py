@@ -25,6 +25,19 @@ class DecimationConfig:
     start_block_id: int = 2001
 
 
+def decimate_np_array(
+    data, downsampling_factor, filter_order, filter_type, axis, zero_phase: bool
+):
+    return signal.decimate(
+        x=data,
+        q=downsampling_factor,
+        n=filter_order,
+        ftype=filter_type,
+        axis=axis,
+        zero_phase=zero_phase,
+    )
+
+
 def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: DH5File):
     assert recording.continuous is not None, (
         "No continuous data found in the recording."
@@ -62,7 +75,7 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
                 selected_channel_names=[channel_name],
             )
             # samples x channels
-            decimated_samples = signal.decimate(
+            decimated_samples = decimate_np_array(
                 x=samples,
                 q=config.downsampling_factor,
                 n=config.filter_order,
