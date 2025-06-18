@@ -19,20 +19,25 @@ class RawConfig:
     oe_processor_cont_group_map: dict[str, default.ContGroups] = field(
         default_factory=lambda: default.DEFAULT_OE_STREAM_MAPPING.copy()
     )
+    included_channel_names: list[str] | None = None  # None for all
 
 
-def create_cont_group_per_channel(
+def _create_cont_group_per_channel(
     oe_continuous: Continuous,
     dh5file: dh5io.DH5File,
     metadata: ContinuousMetadata,
     start_cont_id: int,
     first_global_channel_index: int,
+    included_channel_names: list[str] | None = None,
 ):
     global_channel_index = first_global_channel_index
     index = create_empty_index_array(n_index_items=1)
 
     assert metadata.channel_names is not None, "Channel names are not set in OE data."
     for channel_index, name in enumerate(metadata.channel_names):
+        if included_channel_names is not None and name not in included_channel_names:
+            continue
+
         dh5_cont_id = start_cont_id + channel_index
 
         channel_info = create_channel_info(
@@ -60,12 +65,13 @@ def create_cont_group_per_channel(
         global_channel_index += 1
 
 
-def create_cont_group_per_continuous_stream(
+def _create_cont_group_per_continuous_stream(
     oe_continuous: Continuous,
     dh5file: dh5io.DH5File,
     metadata: ContinuousMetadata,
     start_cont_id: int,
     last_global_channel_index: int = 0,
+    included_channel_names: list[str] | None = None,
 ):
     raise NotImplementedError("Grouping channels into CONT blocks is not yet supported")
 
@@ -110,7 +116,7 @@ def process_oe_raw_data(config: RawConfig, recording: Recording, dh5file: DH5Fil
         # cont: Continuous
         metadata: ContinuousMetadata = cont.metadata
 
-        cont_group: ContGroups | None = config.oe_processor_cont_group_map.get(
+        cont_group: default.ContGroups | None = config.oe_processor_cont_group_map.get(
             metadata.stream_name
         )
         if cont_group is None:
@@ -123,18 +129,20 @@ def process_oe_raw_data(config: RawConfig, recording: Recording, dh5file: DH5Fil
 
         nSamples, nChannels = cont.samples.shape
         if config.split_channels_into_cont_blocks:
-            create_cont_group_per_channel(
+            _create_cont_group_per_channel(
                 oe_continuous=cont,
                 dh5file=dh5file,
                 metadata=metadata,
                 start_cont_id=start_cont_id,
                 first_global_channel_index=global_channel_index,
+                included_channel_names=config.included_channel_names,
             )
             global_channel_index += nChannels
         else:
-            create_cont_group_per_continuous_stream(
+            _create_cont_group_per_continuous_stream(
                 oe_continuous=cont,
                 dh5file=dh5file,
                 metadata=metadata,
                 start_cont_id=start_cont_id,
+                included_channel_names=config.included_channel_names,
             )
