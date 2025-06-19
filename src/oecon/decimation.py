@@ -76,10 +76,10 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
             )
             # samples x channels
             decimated_samples = decimate_np_array(
-                x=samples,
-                q=config.downsampling_factor,
-                n=config.filter_order,
-                ftype=config.ftype,
+                data=samples,
+                downsampling_factor=config.downsampling_factor,
+                filter_order=config.filter_order,
+                filter_type=config.ftype,
                 axis=0,
                 zero_phase=config.zero_phase,
             )
