@@ -7,7 +7,7 @@ from oecon.decimation import DecimationConfig
 from oecon.events import EventPreprocessingConfig
 from oecon.raw import RawConfig
 from oecon.trialmap import TrialMapConfig
-from oecon.mua import MuaConfig
+from oecon.mua import ContinuousMuaConfig
 
 VERSION = 1
 
@@ -26,6 +26,7 @@ class OpenEphysToDhConfig:
     event_config: EventPreprocessingConfig | None
     trialmap_config: TrialMapConfig | None
     spike_cutting_config: SpikeCuttingConfig | None
+    continuous_mua_config: ContinuousMuaConfig | None
     config_version: int = VERSION
     oecon_version: str = field(
         default_factory=lambda: __import__(
@@ -83,6 +84,10 @@ def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
     if spike_cutting_config is not None:
         spike_cutting_config = SpikeCuttingConfig(**spike_cutting_config)
 
+    continuous_mua_config = config_data.get("continuous_mua_config", None)
+    if continuous_mua_config is not None:
+        continuous_mua_config = ContinuousMuaConfig(**continuous_mua_config)
+
     # TODO: properly handle enums in dicts
 
     return OpenEphysToDhConfig(
@@ -91,4 +96,5 @@ def load_config_from_file(config_path: PathLike) -> OpenEphysToDhConfig:
         event_config=event_config,
         trialmap_config=trialmap_config,
         spike_cutting_config=spike_cutting_config,
+        continuous_mua_config=continuous_mua_config,
     )
