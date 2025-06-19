@@ -258,3 +258,5 @@ def process_oe_trialmap(config: TrialMapConfig, recording: Recording, dh5file: D
         new_trialmap[iTrial].EndTime = np.int64(trial_end_timestamps[iTrial] * 1e9)
 
     dh5io.trialmap.add_trialmap_to_file(dh5file.file, new_trialmap)
+
+    return config

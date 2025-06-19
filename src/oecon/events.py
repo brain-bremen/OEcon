@@ -310,3 +310,5 @@ def process_oe_events(
         new_operation_group_name="oecon_process_events",
         tool=f"oecon_v{oecon.version.get_version_from_pyproject()}",
     )
+
+    return event_config

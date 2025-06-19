@@ -21,7 +21,7 @@ class DecimationConfig:
     ftype: str = "fir"
     zero_phase: bool = True
     filter_order: int | None = 600
-    channel_names: list[str] | None = None  # doall if None
+    included_channel_names: list[str] | None = None  # doall if None
     start_block_id: int = 2001
 
 
@@ -38,13 +38,16 @@ def decimate_np_array(
     )
 
 
-def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: DH5File):
+def decimate_raw_data(
+    config: DecimationConfig, recording: Recording, dh5file: DH5File
+) -> DecimationConfig:
     assert recording.continuous is not None, (
         "No continuous data found in the recording."
     )
 
     global_channel_index = 0
     dh5_cont_id = config.start_block_id
+    included_channel_names: list[str] = []
 
     for oe_cont in recording.continuous:
         oe_metadata = oe_cont.metadata
@@ -53,11 +56,11 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
             "Channel names are not set in OE data."
         )
 
-        if config.channel_names is None:
+        if config.included_channel_names is None:
             logger.debug("No channel selection provided, selecting all channels")
-            included_channel_names = oe_metadata.channel_names
+            included_channel_names.extend(oe_metadata.channel_names)
         else:
-            included_channel_names = config.channel_names
+            included_channel_names.extend(config.included_channel_names)
 
         # TODO: Use chunks of channels in parallel
         logger.info(
@@ -112,3 +115,6 @@ def decimate_raw_data(config: DecimationConfig, recording: Recording, dh5file: D
         "decimate_raw_data",
         f"oecon_v{oecon.version.get_version_from_pyproject()}",
     )
+
+    config.included_channel_names = included_channel_names
+    return config

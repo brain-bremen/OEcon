@@ -39,9 +39,16 @@ class OpenEphysToDhConfig:
 def save_config_to_file(config_filename: PathLike, config: OpenEphysToDhConfig) -> None:
     import json
     from dataclasses import asdict
+    import numpy as np
+
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, o):
+            if isinstance(o, np.ndarray):
+                return o.tolist()
+            return super().default(o)
 
     logger.info(f"Saving configration to {config_filename}")
-    jsonstringconf = json.dumps(asdict(config), indent=True)
+    jsonstringconf = json.dumps(asdict(config), indent=True, cls=NumpyEncoder)
     with open(config_filename, mode="w") as config_file:
         config_file.write(jsonstringconf)
 

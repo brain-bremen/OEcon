@@ -12,12 +12,14 @@ from oecon.config import (
     RawConfig,
     SpikeCuttingConfig,
     TrialMapConfig,
+    ContinuousMuaConfig,
     save_config_to_file,
 )
 from oecon.decimation import decimate_raw_data
 from oecon.events import process_oe_events
 from oecon.raw import process_oe_raw_data
 from oecon.trialmap import process_oe_trialmap
+from oecon.mua import extract_continuous_mua
 
 # Configure logging
 logging.basicConfig(
@@ -62,27 +64,35 @@ def convert_open_ephys_recording_to_dh5(
             decimation_config=DecimationConfig(),
             event_config=EventPreprocessingConfig(network_events_offset=1000),
             trialmap_config=TrialMapConfig(),
+            continuous_mua_config=ContinuousMuaConfig(),
             spike_cutting_config=SpikeCuttingConfig(),
         )
 
-    config_filename = Path(f"{session_name}_{recording_index}.config.json")
-    save_config_to_file(config_filename, config)
-
     if config.raw_config is not None:
-        process_oe_raw_data(config.raw_config, recording, dh5file)
+        config.raw_config = process_oe_raw_data(config.raw_config, recording, dh5file)
 
     if config.event_config is not None:
-        process_oe_events(config.event_config, recording=recording, dh5file=dh5file)
+        config.event_config = process_oe_events(
+            config.event_config, recording=recording, dh5file=dh5file
+        )
 
     if config.trialmap_config is not None:
-        process_oe_trialmap(
+        config.trialmap_config = process_oe_trialmap(
             config.trialmap_config, recording=recording, dh5file=dh5file
         )
 
     if config.decimation_config is not None:
-        decimate_raw_data(
+        config.decimation_config = decimate_raw_data(
             config.decimation_config, recording=recording, dh5file=dh5file
         )
+
+    if config.continuous_mua_config is not None:
+        config.continuous_mua_config = extract_continuous_mua(
+            config.continuous_mua_config, config.decimation_config, recording, dh5file
+        )
+
+    config_filename = Path(f"{session_name}_{recording_index}.config.json")
+    save_config_to_file(config_filename, config)
 
     logger.info(
         f"Finished converting OpenEphys recording from {recording.directory} to {dh5filename}"
