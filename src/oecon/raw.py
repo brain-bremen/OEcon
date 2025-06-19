@@ -105,16 +105,21 @@ def _create_cont_group_per_continuous_stream(
     )
 
 
-def process_oe_raw_data(config: RawConfig, recording: Recording, dh5file: DH5File):
+def process_oe_raw_data(
+    config: RawConfig, recording: Recording, dh5file: DH5File
+) -> RawConfig:
     assert recording.continuous is not None, (
         "No continuous data found in the recording."
     )
 
     # continuous raw data
     global_channel_index = 0
+    included_channel_names: list[str] = []
     for cont in recording.continuous:
         # cont: Continuous
         metadata: ContinuousMetadata = cont.metadata
+        if config.included_channel_names is None and metadata.channel_names is not None:
+            included_channel_names.extend(metadata.channel_names)
 
         cont_group: default.ContGroups | None = config.oe_processor_cont_group_map.get(
             metadata.stream_name
@@ -146,3 +151,8 @@ def process_oe_raw_data(config: RawConfig, recording: Recording, dh5file: DH5Fil
                 start_cont_id=start_cont_id,
                 included_channel_names=config.included_channel_names,
             )
+
+    # update included channesl in config
+    config.included_channel_names = included_channel_names
+
+    return config
