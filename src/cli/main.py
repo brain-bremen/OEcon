@@ -6,7 +6,8 @@ from open_ephys.analysis.session import Session
 import tkinter as tk
 from tkinter import filedialog
 import sys
-import winreg
+if sys.platform == "win32":
+    import winreg
 import logging
 
 logger = logging.getLogger(__name__)

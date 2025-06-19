@@ -16,6 +16,7 @@ from oecon.config import (
     load_config_from_file,
     VERSION,
 )
+from oecon.mua import ContinuousMuaConfig
 
 
 def make_sample_config():
@@ -25,6 +26,7 @@ def make_sample_config():
         event_config=EventPreprocessingConfig(),
         trialmap_config=TrialMapConfig(),
         spike_cutting_config=SpikeCuttingConfig(),
+        continuous_mua_config=ContinuousMuaConfig()
     )
 
 
@@ -66,6 +68,7 @@ def test_save_and_load_config_with_none_fields():
         event_config=None,
         trialmap_config=None,
         spike_cutting_config=None,
+        continuous_mua_config=None
     )
     with tempfile.TemporaryDirectory() as tmpdir:
         config_path = Path(os.path.join(tmpdir, "test_config_none.json"))
