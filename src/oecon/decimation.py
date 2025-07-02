@@ -11,6 +11,7 @@ from dh5io import DH5File
 from open_ephys.analysis.recording import Recording
 
 import oecon.version
+from oecon.scaling import scale_to_16_bit_range
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class DecimationConfig:
     filter_order: int | None = 600
     included_channel_names: list[str] | None = None  # doall if None
     start_block_id: int = 2001
+    scale_max_abs_to: np.int16 | None = None
 
 
 def decimate_np_array(
@@ -96,6 +98,14 @@ def decimate_raw_data(
                 AmplifChan0=0,
             )
 
+            logger.info(f"Data range: {np.min(samples)} - {np.max(samples)}")
+            if config.scale_max_abs_to is not None:
+                decimated_samples, scaling_factor = scale_to_16_bit_range(
+                    decimated_samples
+                )
+            else:
+                scaling_factor = 1.0
+
             dh5io.cont.create_cont_group_from_data_in_file(
                 file=dh5file.file,
                 cont_group_id=dh5_cont_id,
@@ -106,7 +116,8 @@ def decimate_raw_data(
                 ),
                 name=f"{oe_metadata.stream_name}/{channel_name}/LFP",
                 channels=channel_info,
-                calibration=np.array(oe_metadata.bit_volts[channel_index]),
+                calibration=np.array(oe_metadata.bit_volts[channel_index])
+                * scaling_factor,
             )
 
             dh5_cont_id += 1
