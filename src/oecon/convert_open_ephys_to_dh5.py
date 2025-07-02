@@ -87,8 +87,15 @@ def convert_open_ephys_recording_to_dh5(
         )
 
     if config.continuous_mua_config is not None:
+        decimation_config = config.decimation_config
+        if decimation_config is None:
+            decimation_config = DecimationConfig()
+
         config.continuous_mua_config = extract_continuous_mua(
-            config.continuous_mua_config, config.decimation_config, recording, dh5file
+            config=config.continuous_mua_config,
+            decimation_config=decimation_config,
+            recording=recording,
+            dh5file=dh5file,
         )
 
     config_filename = Path(f"{session_name}_{recording_index}.config.json")
