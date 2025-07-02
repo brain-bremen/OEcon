@@ -101,7 +101,9 @@ def decimate_raw_data(
                 cont_group_id=dh5_cont_id,
                 data=decimated_samples,
                 index=dhspec.cont.create_empty_index_array(1),
-                sample_period_ns=np.int32(1.0 / oe_metadata.sample_rate * 1e9),
+                sample_period_ns=np.int32(
+                    1.0 / oe_metadata.sample_rate * 1e9 * config.downsampling_factor
+                ),
                 name=f"{oe_metadata.stream_name}/{channel_name}/LFP",
                 channels=channel_info,
                 calibration=np.array(oe_metadata.bit_volts[channel_index]),
