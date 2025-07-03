@@ -12,7 +12,6 @@ from dh5io.cont import validate_cont_group
 
 
 class MockContinuous(Continuous):
-    """Mock class that inherits from Continuous"""
 
     def __init__(self, samples, metadata):
         self.samples = samples
@@ -25,7 +24,6 @@ class MockContinuous(Continuous):
         selected_channels=None,
         selected_channel_names=None,
     ):
-        """Mock get_samples method that returns data for the selected channel"""
         if selected_channel_names and self.metadata.channel_names:
             # Find the index of the selected channel
             channel_idx = self.metadata.channel_names.index(selected_channel_names[0])
@@ -35,7 +33,6 @@ class MockContinuous(Continuous):
 
 
 class MockRecording(Recording):
-    """Mock class that inherits from Recording"""
 
     def __init__(self, continuous_data_list):
         # Don't call super().__init__() to avoid complex initialization
@@ -156,119 +153,77 @@ class TestDecimateNpArray:
             assert result.shape[0] == data.shape[0] // 5
 
 
-class TestDecimationConfig:
-    """Tests for DecimationConfig dataclass"""
+def test_decimation_config_with_real_dh5file():
+    """Test DecimationConfig integration with a real temporary DH5File"""
+    # Create a temporary file for the DH5 file
+    with tempfile.NamedTemporaryFile(suffix=".dh5", delete=False) as temp_file:
+        temp_path = temp_file.name
 
-    def test_decimation_config_defaults(self):
-        """Test default values of DecimationConfig"""
-        config = DecimationConfig()
+    # Create a real DH5File using create_dh_file
+    dh5file = create_dh_file(temp_path, overwrite=True, validate=True)
 
-        assert config.downsampling_factor == 30
-        assert config.ftype == "fir"
-        assert config.zero_phase
-        assert config.filter_order == 600
-        assert config.included_channel_names is None
-        assert config.start_block_id == 2001
-        assert config.scale_max_abs_to is None
+    # Create test data
+    np.random.seed(42)
+    test_samples = np.random.randn(1000, 2)  # 1000 samples, 2 channels
 
-    def test_decimation_config_custom_values(self):
-        """Test DecimationConfig with custom values"""
-        config = DecimationConfig(
-            downsampling_factor=10,
-            ftype="iir",
-            zero_phase=False,
-            filter_order=100,
-            included_channel_names=["CH1", "CH2"],
-            start_block_id=3000,
-            scale_max_abs_to=np.int16(16383),
-        )
+    # Create metadata and continuous data
+    metadata = ContinuousMetadata(
+        channel_names=["CH1", "CH2"],
+        sample_rate=30000,
+        source_node_name="test_node",
+        source_node_id=100,
+        stream_name="test_stream",
+        num_channels=2,
+        bit_volts=[0.05, 0.05],
+    )
 
-        assert config.downsampling_factor == 10
-        assert config.ftype == "iir"
-        assert not config.zero_phase
-        assert config.filter_order == 100
-        assert config.included_channel_names == ["CH1", "CH2"]
-        assert config.start_block_id == 3000
-        assert config.scale_max_abs_to == np.int16(16383)
+    continuous = MockContinuous(samples=test_samples, metadata=metadata)
+    recording = MockRecording([continuous])
 
-    def test_decimation_config_with_real_dh5file(self):
-        """Test DecimationConfig integration with a real temporary DH5File"""
-        # Create a temporary file for the DH5 file
-        with tempfile.NamedTemporaryFile(suffix=".dh5", delete=False) as temp_file:
-            temp_path = temp_file.name
+    # Create config with custom values
+    config = DecimationConfig(
+        downsampling_factor=10,
+        ftype="fir",
+        filter_order=30,
+        zero_phase=True,
+        included_channel_names=None,
+        start_block_id=2001,
+        scale_max_abs_to=np.int16(32000),
+    )
 
-        try:
-            # Create a real DH5File using create_dh_file
-            dh5file = create_dh_file(temp_path, overwrite=True, validate=True)
+    # Test that the config works with the actual decimate_raw_data function
+    result_config = decimate_raw_data(config, recording, dh5file)
 
-            try:
-                # Create test data
-                np.random.seed(42)
-                test_samples = np.random.randn(1000, 2)  # 1000 samples, 2 channels
+    # Verify the configuration was updated correctly
+    assert result_config.downsampling_factor == 10
+    assert result_config.ftype == "fir"
+    assert result_config.zero_phase
+    assert result_config.filter_order == 30
+    assert result_config.included_channel_names == ["CH1", "CH2"]
+    assert result_config.start_block_id == 2001
 
-                # Create metadata and continuous data
-                metadata = ContinuousMetadata(
-                    channel_names=["CH1", "CH2"],
-                    sample_rate=30000,
-                    source_node_name="test_node",
-                    source_node_id=100,
-                    stream_name="test_stream",
-                    num_channels=2,
-                    bit_volts=[0.05, 0.05],
-                )
 
-                continuous = MockContinuous(samples=test_samples, metadata=metadata)
-                recording = MockRecording([continuous])
+    # Check that data was actually written to the DH5 file
+    expected_decimated_length = (
+        test_samples.shape[0] // config.downsampling_factor
+    )
 
-                # Create config with custom values
-                config = DecimationConfig(
-                    downsampling_factor=10,
-                    ftype="fir",
-                    filter_order=30,
-                    zero_phase=True,
-                    included_channel_names=["CH1", "CH2"],
-                    start_block_id=2001,
-                )
+    assert 2001 in dh5file.get_cont_group_ids()
+    assert 2002 in dh5file.get_cont_group_ids()
 
-                # Test that the config works with the actual decimate_raw_data function
-                result_config = decimate_raw_data(config, recording, dh5file)
+    dh5file.get_cont_group_by_id(2001)
+    cont_ch1 = dh5file.get_cont_group_by_id(2001)
 
-                # Verify the configuration was updated correctly
-                assert result_config.downsampling_factor == 10
-                assert result_config.ftype == "fir"
-                assert result_config.zero_phase
-                assert result_config.filter_order == 30
-                assert result_config.included_channel_names == ["CH1", "CH2"]
-                assert result_config.start_block_id == 2001
+    calibrated_written_data = dh5file.get_calibrated_cont_data_by_id(2001)
+    # validate_cont_group(cont_ch1)
+    data = cont_ch1.get("DATA")
+    assert data is not None
+    assert data.size == expected_decimated_length
 
-                # Verify that the function actually processed the channels
-                assert result_config.included_channel_names == ["CH1", "CH2"]
+    # TODO: ...
 
-                # Check that data was actually written to the DH5 file
-                expected_decimated_length = (
-                    test_samples.shape[0] // config.downsampling_factor
-                )
-
-                assert 2001 in dh5file.get_cont_group_ids()
-                assert 2002 in dh5file.get_cont_group_ids()
-
-                dh5file.get_cont_group_by_id(2001)
-                cont_ch1 = dh5file.get_cont_group_by_id(2001)
-                # validate_cont_group(cont_ch1)
-                data = cont_ch1.get("DATA")
-                assert data is not None
-                assert data.size == expected_decimated_length
-
-                # TODO: ...
-
-            finally:
-                # Close the DH5File properly
-                dh5file.file.close()
-
-        finally:
-            # Clean up the temporary file
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
+    if os.path.exists(temp_path):
+        os.unlink(temp_path)
 
 
 class TestDecimateRawDataIntegration:

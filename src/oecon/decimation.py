@@ -117,7 +117,7 @@ def decimate_raw_data(
                 name=f"{oe_metadata.stream_name}/{channel_name}/LFP",
                 channels=channel_info,
                 calibration=np.array(oe_metadata.bit_volts[channel_index])
-                * scaling_factor,
+                / scaling_factor,
             )
 
             dh5_cont_id += 1
