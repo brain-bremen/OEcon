@@ -98,7 +98,7 @@ def decimate_raw_data(
                 AmplifChan0=0,
             )
 
-            logger.info(f"Data range: {np.min(samples)} - {np.max(samples)}")
+            logger.debug(f"Data range: {np.min(samples)} - {np.max(samples)}")
             if config.scale_max_abs_to is not None:
                 decimated_samples, scaling_factor = scale_to_16_bit_range(
                     decimated_samples
