@@ -104,7 +104,10 @@ def decimate_raw_data(
                     decimated_samples
                 )
             else:
-                scaling_factor = 1.0
+                # use original scaling factor (bit_volts)
+                scaling_factor = oe_cont.metadata.bit_volts[channel_index]
+                decimated_samples /= scaling_factor
+                decimated_samples = decimated_samples.astype(np.int16)
 
             dh5io.cont.create_cont_group_from_data_in_file(
                 file=dh5file.file,
