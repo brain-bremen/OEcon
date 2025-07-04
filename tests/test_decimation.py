@@ -11,8 +11,51 @@ from dh5io.create import create_dh_file
 from dh5io.cont import validate_cont_group
 
 
-class MockContinuous(Continuous):
+def create_sinusoid_signal(
+    n_samples,
+    n_channels,
+    sample_rate=30000,
+    frequencies=(10, 50),
+    amplitudes=(1.0, 0.5),
+    noise_std=0.1,
+    seed=42,
+):
+    """Create test signal with two sinusoids and noise.
 
+    Args:
+        n_samples: Number of samples
+        n_channels: Number of channels
+        sample_rate: Sampling rate in Hz
+        frequencies: Tuple of two frequencies for the sinusoids (Hz)
+        amplitudes: Tuple of amplitudes for the two sinusoids
+        noise_std: Standard deviation of additive Gaussian noise
+        seed: Random seed for reproducible noise
+
+
+    """
+    np.random.seed(seed)
+
+    # Create time vector
+    t = np.arange(n_samples) / sample_rate
+
+    # Create the two sinusoids
+    sin1 = amplitudes[0] * np.sin(2 * np.pi * frequencies[0] * t)
+    sin2 = amplitudes[1] * np.sin(2 * np.pi * frequencies[1] * t)
+
+    # Combine sinusoids
+    signal = sin1 + sin2
+
+    # Add noise
+    noise = noise_std * np.random.randn(n_samples)
+    signal_with_noise = signal + noise
+
+    # Replicate across channels
+    test_samples = np.column_stack([signal_with_noise] * n_channels)
+
+    return test_samples, t
+
+
+class MockContinuous(Continuous):
     def __init__(self, samples, metadata):
         self.samples = samples
         self.metadata = metadata
@@ -33,7 +76,6 @@ class MockContinuous(Continuous):
 
 
 class MockRecording(Recording):
-
     def __init__(self, continuous_data_list):
         # Don't call super().__init__() to avoid complex initialization
         self._continuous = continuous_data_list
@@ -103,9 +145,15 @@ class TestDecimateNpArray:
 
     def test_decimate_np_array_basic(self):
         """Test basic decimation functionality"""
-        # Create test data
-        np.random.seed(42)
-        data = np.random.randn(1000, 2)
+        # Create test data with sinusoids and noise
+        data, t = create_sinusoid_signal(
+            n_samples=1000,
+            n_channels=2,
+            frequencies=(10, 40),
+            amplitudes=(1.0, 0.5),
+            noise_std=0.1,
+            seed=42,
+        )
 
         # Test decimation
         result = decimate_np_array(
@@ -123,7 +171,14 @@ class TestDecimateNpArray:
 
     def test_decimate_np_array_different_factors(self):
         """Test decimation with different downsampling factors"""
-        data = np.random.randn(1000, 1)
+        data, t = create_sinusoid_signal(
+            n_samples=1000,
+            n_channels=1,
+            frequencies=(15, 35),
+            amplitudes=(1.2, 0.3),
+            noise_std=0.05,
+            seed=42,
+        )
 
         for factor in [2, 5, 10, 20]:
             result = decimate_np_array(
@@ -139,7 +194,14 @@ class TestDecimateNpArray:
 
     def test_decimate_np_array_filter_types(self):
         """Test decimation with different filter types"""
-        data = np.random.randn(500, 1)
+        data, t = create_sinusoid_signal(
+            n_samples=500,
+            n_channels=1,
+            frequencies=(12, 48),
+            amplitudes=(0.8, 0.4),
+            noise_std=0.08,
+            seed=42,
+        )
 
         for ftype in ["fir", "iir"]:
             result = decimate_np_array(
@@ -153,7 +215,7 @@ class TestDecimateNpArray:
             assert result.shape[0] == data.shape[0] // 5
 
 
-def test_decimation_config_with_real_dh5file():
+def test_decimation_config_with_real_dh5file(plt):
     """Test DecimationConfig integration with a real temporary DH5File"""
     # Create a temporary file for the DH5 file
     with tempfile.NamedTemporaryFile(suffix=".dh5", delete=False) as temp_file:
@@ -162,9 +224,16 @@ def test_decimation_config_with_real_dh5file():
     # Create a real DH5File using create_dh_file
     dh5file = create_dh_file(temp_path, overwrite=True, validate=True)
 
-    # Create test data
-    np.random.seed(42)
-    test_samples = np.random.randn(1000, 2)  # 1000 samples, 2 channels
+    # Create test data with two sinusoids and noise
+    test_samples, t = create_sinusoid_signal(
+        n_samples=30000,
+        n_channels=2,
+        sample_rate=30000,
+        frequencies=(10, 200),  # 10 Hz and 50 Hz sinusoids
+        amplitudes=(6.0, 5.0),  # Different amplitudes
+        noise_std=0,
+        seed=42,
+    )
 
     # Create metadata and continuous data
     metadata = ContinuousMetadata(
@@ -202,11 +271,8 @@ def test_decimation_config_with_real_dh5file():
     assert result_config.included_channel_names == ["CH1", "CH2"]
     assert result_config.start_block_id == 2001
 
-
     # Check that data was actually written to the DH5 file
-    expected_decimated_length = (
-        test_samples.shape[0] // config.downsampling_factor
-    )
+    expected_decimated_length = test_samples.shape[0] // config.downsampling_factor
 
     assert 2001 in dh5file.get_cont_group_ids()
     assert 2002 in dh5file.get_cont_group_ids()
@@ -214,13 +280,20 @@ def test_decimation_config_with_real_dh5file():
     dh5file.get_cont_group_by_id(2001)
     cont_ch1 = dh5file.get_cont_group_by_id(2001)
 
-    calibrated_written_data = dh5file.get_calibrated_cont_data_by_id(2001)
-    # validate_cont_group(cont_ch1)
-    data = cont_ch1.get("DATA")
+    data = cont_ch1.calibrated_data
     assert data is not None
     assert data.size == expected_decimated_length
 
-    # TODO: ...
+    assert data.mean() < 0.1
+    assert data.max() <= 6.0
+
+    t_decimated = np.arange(0, expected_decimated_length) / (
+        metadata.sample_rate / config.downsampling_factor
+    )
+    plt.plot(t_decimated, cont_ch1.calibrated_data, "o-")
+    plt.plot(t, test_samples[:, 0], ".")
+
+    del dh5file
 
     if os.path.exists(temp_path):
         os.unlink(temp_path)
@@ -248,9 +321,15 @@ class TestDecimateRawDataIntegration:
         mock_index_array.return_value = np.array([0])
         mock_channel_info.return_value = {"test": "channel_info"}
 
-        # Create test data
-        np.random.seed(42)
-        test_samples = np.random.randn(1000, 2)  # 1000 samples, 2 channels
+        # Create test data with two sinusoids and noise
+        test_samples, t = create_sinusoid_signal(
+            n_samples=1000,
+            n_channels=2,
+            frequencies=(20, 100),
+            amplitudes=(1.5, 0.8),
+            noise_std=0.3,
+            seed=42,
+        )
 
         # Create mock metadata and continuous data
         metadata = ContinuousMetadata(
@@ -311,9 +390,15 @@ class TestDecimateRawDataIntegration:
         mock_index_array.return_value = np.array([0])
         mock_channel_info.return_value = {"test": "channel_info"}
 
-        # Create test data
-        np.random.seed(42)
-        test_samples = np.random.randn(500, 3)  # 500 samples, 3 channels
+        # Create test data with two sinusoids and noise
+        test_samples, t = create_sinusoid_signal(
+            n_samples=500,
+            n_channels=3,
+            frequencies=(15, 60),
+            amplitudes=(1.0, 0.6),
+            noise_std=0.2,
+            seed=42,
+        )
 
         # Create mock metadata and continuous data
         metadata = ContinuousMetadata(
@@ -385,10 +470,23 @@ class TestDecimateRawDataIntegration:
         mock_index_array.return_value = np.array([0])
         mock_channel_info.return_value = {"test": "channel_info"}
 
-        # Create test data for two streams
-        np.random.seed(42)
-        test_samples1 = np.random.randn(300, 2)  # Stream 1: 2 channels
-        test_samples2 = np.random.randn(300, 1)  # Stream 2: 1 channel
+        # Create test data for two streams with sinusoids and noise
+        test_samples1, t = create_sinusoid_signal(
+            n_samples=300,
+            n_channels=2,
+            frequencies=(25, 75),
+            amplitudes=(1.2, 0.7),
+            noise_std=0.25,
+            seed=42,
+        )
+        test_samples2, t = create_sinusoid_signal(
+            n_samples=300,
+            n_channels=1,
+            frequencies=(30, 80),
+            amplitudes=(0.9, 0.4),
+            noise_std=0.15,
+            seed=43,
+        )
 
         # Create mock metadata and continuous data for stream 1
         metadata1 = ContinuousMetadata(

@@ -28,6 +28,7 @@ vstim-python-tools = { git = "https://github.com/brain-bremen/vstim-python-tools
 dev = [
     "mypy>=1.16.1",
     "pytest>=8.3.5",
+    "pytest-plt>=1.1.1",
     "scipy-stubs>=1.15.3.0",
 ]
 

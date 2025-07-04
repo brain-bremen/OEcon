@@ -13,7 +13,7 @@ def test_scale_to_16_bit_range():
     assert np.all(scaled_data >= -32768) and np.all(scaled_data <= 32767)
 
     # Check if the maximum absolute value is scaled correctly
-    expected_scaled_data = np.int16(data * factor)
+    expected_scaled_data = np.int16(data / factor)
     assert np.array_equal(scaled_data, expected_scaled_data)
 
 

@@ -13,4 +13,4 @@ def scale_to_16_bit_range(
     factor: float = scale_abs_max_to / max_abs_value_in_data
 
     scaled_data = (data * factor).astype(np.int16)
-    return scaled_data, factor
+    return scaled_data, 1 / factor
