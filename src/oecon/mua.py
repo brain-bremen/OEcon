@@ -102,6 +102,10 @@ def extract_continuous_mua(
                 AmplifChan0=0,
             )
 
+            scaling_factor = oe_cont.metadata.bit_volts[channel_index]
+            decimated_samples /= scaling_factor
+            decimated_samples = decimated_samples.astype(np.int16)
+
             dh5io.cont.create_cont_group_from_data_in_file(
                 file=dh5file.file,
                 cont_group_id=dh5_cont_id,
