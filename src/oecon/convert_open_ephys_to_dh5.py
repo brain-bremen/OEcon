@@ -60,7 +60,7 @@ def convert_open_ephys_recording_to_dh5(
 
     if config is None:
         config = OpenEphysToDhConfig(
-            raw_config=RawConfig(split_channels_into_cont_blocks=True),
+            raw_config=None,  # RawConfig(split_channels_into_cont_blocks=True),
             decimation_config=DecimationConfig(),
             event_config=EventPreprocessingConfig(network_events_offset=1000),
             trialmap_config=TrialMapConfig(),
