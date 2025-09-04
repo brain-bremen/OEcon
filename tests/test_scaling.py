@@ -5,6 +5,8 @@ import pytest
 
 def test_scale_to_16_bit_range():
     # Test with a simple array
+    np.random.seed(42)
+
     data = np.random.rand(100) * 37
     scaled_data, factor = scale_to_16_bit_range(data, scale_abs_max_to=32765)
 
