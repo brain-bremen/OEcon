@@ -110,7 +110,7 @@ def decimate_raw_data(
                 decimated_samples = decimated_samples.astype(np.int16)
 
             dh5io.cont.create_cont_group_from_data_in_file(
-                file=dh5file.file,
+                file=dh5file._file,
                 cont_group_id=dh5_cont_id,
                 data=decimated_samples,
                 index=dhspec.cont.create_empty_index_array(1),
@@ -126,7 +126,7 @@ def decimate_raw_data(
             global_channel_index += 1
 
     dh5io.operations.add_operation_to_file(
-        dh5file.file,
+        dh5file._file,
         "decimate_raw_data",
         f"oecon_v{oecon.version.get_version_from_pyproject()}",
     )

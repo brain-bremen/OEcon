@@ -223,7 +223,7 @@ def find_marker_source(oeinfo: dict):
 def process_oe_events(
     event_config: EventPreprocessingConfig, recording: Recording, dh5file: DH5File
 ):
-    logger.info(f"Processing events in {dh5file.file.filename}")
+    logger.info(f"Processing events in {dh5file._file.filename}")
 
     timestamps_ns = np.array([], dtype=np.int64)
     event_codes = np.array([], dtype=np.int32)
@@ -278,12 +278,12 @@ def process_oe_events(
     assert all(np.diff(timestamps_ns) >= 0)
 
     dh5io.event_triggers.add_event_triggers_to_file(
-        dh5file.file, timestamps_ns=timestamps_ns, event_codes=event_codes
+        dh5file._file, timestamps_ns=timestamps_ns, event_codes=event_codes
     )
 
     # add names of event codes as attributes to filed
     if event_config.ttl_line_names is not None:
-        ev02_dataset = dh5file.file[EV_DATASET_NAME]
+        ev02_dataset = dh5file._file[EV_DATASET_NAME]
         for event_name, event_code in event_config.ttl_line_names.items():
             ev02_dataset.attrs[str(event_name)] = np.int32(
                 event_code + network_events_offset
@@ -294,7 +294,7 @@ def process_oe_events(
         logging.debug(
             f"Adding network events code names to dataset {EV_DATASET_NAME} with offset {network_events_offset}"
         )
-        ev02_dataset = dh5file.file[EV_DATASET_NAME]
+        ev02_dataset = dh5file._file[EV_DATASET_NAME]
         if event_config.network_events_code_name_map is not None:
             for (
                 event_name,
@@ -306,7 +306,7 @@ def process_oe_events(
 
     # add operation to dh5 file
     dh5io.operations.add_operation_to_file(
-        file=dh5file.file,
+        file=dh5file._file,
         new_operation_group_name="oecon_process_events",
         tool=f"oecon_v{oecon.version.get_version_from_pyproject()}",
     )

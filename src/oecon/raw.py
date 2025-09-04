@@ -52,7 +52,7 @@ def _create_cont_group_per_channel(
         data = oe_continuous.samples[:, channel_index : channel_index + 1]
 
         create_cont_group_from_data_in_file(
-            file=dh5file.file,
+            file=dh5file._file,
             cont_group_id=dh5_cont_id,
             data=data,
             index=index,

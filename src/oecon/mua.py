@@ -113,7 +113,7 @@ def extract_continuous_mua(
             decimated_samples = decimated_samples.astype(np.int16)
 
             dh5io.cont.create_cont_group_from_data_in_file(
-                file=dh5file.file,
+                file=dh5file._file,
                 cont_group_id=dh5_cont_id,
                 data=decimated_samples,
                 index=create_empty_index_array(1),
@@ -132,7 +132,7 @@ def extract_continuous_mua(
             global_channel_index += 1
 
     dh5io.operations.add_operation_to_file(
-        dh5file.file,
+        dh5file._file,
         "extract_continuous_mua",
         "oecon_mua_extraction",
     )
