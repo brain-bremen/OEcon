@@ -226,12 +226,27 @@ def process_oe_trialmap(config: TrialMapConfig, recording: Recording, dh5file: D
         logger.warning(
             f"Number of trial start messages ({len(trial_start_messages)}) does not match number of trial end messages ({len(trial_end_messages)})"
         )
-        if len(trial_start_messages) == len(trial_end_messages) + 1:
-            logger.warning("Attempting correcting by removing last trial start message")
-            trial_start_messages.pop()
-            trial_start_timestamps.pop()
+        # Remove unmatched trial start messages by comparing trial_index
+        for start_msg in trial_start_messages:
+            if start_msg.trial_index not in [
+                end_msg.trial_index for end_msg in trial_end_messages
+            ]:
+                logger.warning(f"Removing unmatched trial start message: {start_msg}")
+                index = trial_start_messages.index(start_msg)
+                trial_start_messages.pop(index)
+                trial_start_timestamps.pop(index)
 
-            assert len(trial_start_timestamps) == len(trial_end_messages)
+        # Remove unmatched end messages
+        for end_msg in trial_end_messages:
+            if end_msg.trial_index not in [
+                start_msg.trial_index for start_msg in trial_start_messages
+            ]:
+                logger.warning(f"Removing unmatched trial end message: {end_msg}")
+                index = trial_end_messages.index(end_msg)
+                trial_end_messages.pop(index)
+                trial_end_timestamps.pop(index)
+
+        assert len(trial_start_timestamps) == len(trial_end_messages)
 
     for i, (start_msg, end_msg) in enumerate(
         zip(trial_start_messages, trial_end_messages)
