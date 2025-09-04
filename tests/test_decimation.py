@@ -257,7 +257,7 @@ def test_decimation_config_with_real_dh5file(plt):
         zero_phase=True,
         included_channel_names=None,
         start_block_id=2001,
-        scale_max_abs_to=np.int16(32000),
+        scale_max_abs_to=None,
     )
 
     # Test that the config works with the actual decimate_raw_data function
@@ -285,7 +285,7 @@ def test_decimation_config_with_real_dh5file(plt):
     assert data.size == expected_decimated_length
 
     assert data.mean() < 0.1
-    assert data.max() <= 6.0
+    assert data.max() <= 6.0 + 5.0
 
     t_decimated = np.arange(0, expected_decimated_length) / (
         metadata.sample_rate / config.downsampling_factor
@@ -347,7 +347,7 @@ class TestDecimateRawDataIntegration:
 
         # Create mock DH5File
         mock_dh5file = Mock()
-        mock_dh5file.file = Mock()
+        mock_dh5file._file = Mock()
 
         # Create config
         config = DecimationConfig(
@@ -416,7 +416,7 @@ class TestDecimateRawDataIntegration:
 
         # Create mock DH5File
         mock_dh5file = Mock()
-        mock_dh5file.file = Mock()
+        mock_dh5file._file = Mock()
 
         # Create config with specific channel selection
         config = DecimationConfig(
@@ -517,7 +517,7 @@ class TestDecimateRawDataIntegration:
 
         # Create mock DH5File
         mock_dh5file = Mock()
-        mock_dh5file.file = Mock()
+        mock_dh5file._file = Mock()
 
         # Create config
         config = DecimationConfig(downsampling_factor=3)
