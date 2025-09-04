@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 
 import dh5io
@@ -12,6 +13,8 @@ from open_ephys.analysis.recording import Recording as OERecording
 
 import oecon.default_mappings as default
 from oecon.decimation import DecimationConfig, decimate_np_array
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,6 +56,9 @@ def extract_continuous_mua(
 
         decimation_config.included_channel_names = config.included_channel_names
 
+        logger.info(
+            f"Extracting continuous MUA from {oe_metadata.num_channels} channels continuous data from {oe_metadata.source_node_name} (source_node={oe_metadata.source_node_id})"
+        )
         for channel_index, channel_name in enumerate(oe_metadata.channel_names):
             if channel_name not in config.included_channel_names:
                 continue
