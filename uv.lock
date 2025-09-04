@@ -181,12 +181,16 @@ wheels = [
 ]
 
 [[package]]
-name = "dh-format"
-version = "0.2.0.dev0"
-source = { git = "https://github.com/cog-neurophys-lab/dh5io.git#b7e832f27306e384fd91e6829a7f99866e1564d5" }
+name = "dh5io"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "h5py" },
     { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1c/17/3f718363f0d5b7b5a99ccb2349632afaecf586280183e568aafff4b612ee/dh5io-0.2.1.tar.gz", hash = "sha256:7439ce863c60998b381d6ec6cc990102c03d060c3e7f9285cfa1db5771705d2c", size = 41326, upload_time = "2025-08-21T10:03:18.145Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/47/e7/0a018686922e3c4730f3afe8b84c5de7679a0891d6162a9c4042932c2dfb/dh5io-0.2.1-py3-none-any.whl", hash = "sha256:508a482f879f7b72a9e8cd3f2147244ceab10eeacbf00ed7c24036eb5fc47597", size = 43342, upload_time = "2025-08-21T10:03:17.245Z" },
 ]
 
 [[package]]
@@ -476,10 +480,10 @@ wheels = [
 
 [[package]]
 name = "oecon"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
-    { name = "dh-format" },
+    { name = "dh5io" },
     { name = "open-ephys-python-tools" },
     { name = "scipy" },
     { name = "vstim-python-tools" },
@@ -495,7 +499,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dh-format", git = "https://github.com/cog-neurophys-lab/dh5io.git" },
+    { name = "dh5io" },
     { name = "open-ephys-python-tools", git = "https://github.com/joschaschmiedt/open-ephys-python-tools.git?branch=add-tests" },
     { name = "scipy", specifier = ">=1.15.2" },
     { name = "vstim-python-tools", git = "https://github.com/brain-bremen/vstim-python-tools.git" },
