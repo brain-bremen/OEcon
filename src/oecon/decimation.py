@@ -109,11 +109,15 @@ def decimate_raw_data(
                 decimated_samples /= scaling_factor
                 decimated_samples = decimated_samples.astype(np.int16)
 
+            region_index = dhspec.cont.create_empty_index_array(1)
+            region_index[0]["time"] = np.int64(oe_cont.timestamps[0] * 1e9)
+            region_index[0]["offset"] = 0
+
             dh5io.cont.create_cont_group_from_data_in_file(
                 file=dh5file._file,
                 cont_group_id=dh5_cont_id,
                 data=decimated_samples,
-                index=dhspec.cont.create_empty_index_array(1),
+                index=region_index,
                 sample_period_ns=np.int32(
                     1.0 / oe_metadata.sample_rate * 1e9 * config.downsampling_factor
                 ),

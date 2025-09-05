@@ -112,11 +112,14 @@ def extract_continuous_mua(
             decimated_samples /= scaling_factor
             decimated_samples = decimated_samples.astype(np.int16)
 
+            index = create_empty_index_array(1)
+            index[0]["time"] = np.int64(oe_cont.timestamps[0] * 1e9)
+            index[0]["offset"] = 0
             dh5io.cont.create_cont_group_from_data_in_file(
                 file=dh5file._file,
                 cont_group_id=dh5_cont_id,
                 data=decimated_samples,
-                index=create_empty_index_array(1),
+                index=index,
                 sample_period_ns=np.int32(
                     1.0
                     / oe_metadata.sample_rate

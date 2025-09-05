@@ -31,7 +31,10 @@ def _create_cont_group_per_channel(
     included_channel_names: list[str] | None = None,
 ):
     global_channel_index = first_global_channel_index
-    index = create_empty_index_array(n_index_items=1)
+
+    index = create_empty_index_array(1)
+    index[0]["time"] = np.int64(oe_continuous.timestamps[0] * 1e9)
+    index[0]["offset"] = 0
 
     assert metadata.channel_names is not None, "Channel names are not set in OE data."
     for channel_index, name in enumerate(metadata.channel_names):
